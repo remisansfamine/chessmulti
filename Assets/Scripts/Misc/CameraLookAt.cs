@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 /*
  * Simple static camera
  */
 
-public class CameraLookAt : MonoBehaviour {
-
+public class CameraLookAt : MonoBehaviour
+{
     [SerializeField]
     private Transform lookAt = null;
     [SerializeField]
@@ -14,13 +13,8 @@ public class CameraLookAt : MonoBehaviour {
     [SerializeField]
     private float height = 32f;
 
-    // Use this for initialization
-    void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
         Vector3 position = transform.position;
         position.y = height;
         transform.position = position;

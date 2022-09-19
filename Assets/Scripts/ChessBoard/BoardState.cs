@@ -12,11 +12,9 @@ public partial class ChessGameMgr
 {
     public struct BoardPos
     {
-
         public int X { get; set; }
         public int Y { get; set; }
 
-        //public BoardPos() { X = 0; Y = 0; }
         public BoardPos(int pos) { X = pos % BOARD_SIZE; Y = pos / BOARD_SIZE; }
         public BoardPos(int _x, int _y) { X = _x; Y = _y; }
 
@@ -53,24 +51,26 @@ public partial class ChessGameMgr
 
     public class BoardState
     {
-        public List<BoardSquare> Squares = null;
-        public BitBoard bitBoard;
-
-        public BoardState Clone()
+        public enum EMoveResult
         {
-            BoardState clonedBoard = new BoardState();
-            clonedBoard.Squares = Squares;
-            clonedBoard.bitBoard = bitBoard;
-            return clonedBoard;
+            Normal,
+            Promotion,
+            Castling_Long,
+            Castling_Short
         }
+
+        public List<BoardSquare> Squares = null;
+
+        private bool isWhiteCastlingDone = false;
+        private bool isBlackCastlingDone = false;
 
         public bool IsValidSquare(int pos, EChessTeam team, int teamFlag)
         {
             if (pos < 0)
                 return false;
-            PieceData data = bitBoard.GetPieceFromPos(pos);
-            bool isTeamValid = (data.team == EChessTeam.None && ((teamFlag & (int) ETeamFlag.None) > 0)) ||
-                ((data.team != team && data.team != EChessTeam.None) && ((teamFlag & (int) ETeamFlag.Enemy) > 0));
+
+            bool isTeamValid = ((Squares[pos].Team == EChessTeam.None) && ((teamFlag & (int)ETeamFlag.None) > 0)) ||
+                ((Squares[pos].Team != team && Squares[pos].Team != EChessTeam.None) && ((teamFlag & (int)ETeamFlag.Enemy) > 0));
 
             return isTeamValid;
         }
@@ -115,7 +115,7 @@ public partial class ChessGameMgr
                     LeftFrontPos = new BoardPos(FrontPos).GetLeft();
                     RightFrontPos = new BoardPos(FrontPos).GetRight();
                 }
-                if (new BoardPos(pos).Y == 1 && bitBoard.GetPieceFromPos(pos + BOARD_SIZE).piece == EPieceType.None)
+                if ( new BoardPos(pos).Y == 1 && Squares[pos + BOARD_SIZE].Piece == EPieceType.None)
                 {
                     AddMoveIfValidSquare(team, pos, new BoardPos(FrontPos).GetTop(), moves, (int)ETeamFlag.None);
                 }
@@ -129,7 +129,7 @@ public partial class ChessGameMgr
                     LeftFrontPos = new BoardPos(FrontPos).GetRight();
                 }
 
-                if (new BoardPos(pos).Y == 6 && bitBoard.GetPieceFromPos(pos - BOARD_SIZE).piece == EPieceType.None)
+                if (new BoardPos(pos).Y == 6 && Squares[pos - BOARD_SIZE].Piece == EPieceType.None)
                 {
                     AddMoveIfValidSquare(team, pos, new BoardPos(FrontPos).GetBottom(), moves, (int)ETeamFlag.None);
                 }
@@ -142,82 +142,82 @@ public partial class ChessGameMgr
 
         public void GetValidRookMoves(EChessTeam team, int pos, List<Move> moves)
         {
-            bool bBreak = false;
+            bool doBreak = false;
             int TopPos = new BoardPos(pos).GetTop();
-            while (!bBreak && TopPos >= 0 && bitBoard.GetPieceFromPos(TopPos).team != team)
+            while (!doBreak && TopPos >= 0 && Squares[TopPos].Team != team)
             {
                 AddMoveIfValidSquare(team, pos, TopPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(TopPos).team != EChessTeam.None;
+                doBreak = Squares[TopPos].Team != EChessTeam.None;
                 TopPos = new BoardPos(TopPos).GetTop();
             }
 
-            bBreak = false;
+            doBreak = false;
             int BottomPos = new BoardPos(pos).GetBottom();
-            while (!bBreak && BottomPos >= 0 && bitBoard.GetPieceFromPos(BottomPos).team != team)
+            while (!doBreak && BottomPos >= 0 && Squares[BottomPos].Team != team)
             {
                 AddMoveIfValidSquare(team, pos, BottomPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(BottomPos).team != EChessTeam.None;
+                doBreak = Squares[BottomPos].Team != EChessTeam.None;
                 BottomPos = new BoardPos(BottomPos).GetBottom();
             }
 
-            bBreak = false;
+            doBreak = false;
             int LeftPos = new BoardPos(pos).GetLeft();
-            while (!bBreak && LeftPos >= 0 && bitBoard.GetPieceFromPos(LeftPos).team != team)
+            while (!doBreak && LeftPos >= 0 && Squares[LeftPos].Team != team)
             {
                 AddMoveIfValidSquare(team, pos, LeftPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(LeftPos).team != EChessTeam.None;
+                doBreak = Squares[LeftPos].Team != EChessTeam.None;
                 LeftPos = new BoardPos(LeftPos).GetLeft();
             }
 
-            bBreak = false;
+            doBreak = false;
             int RightPos = new BoardPos(pos).GetRight();
-            while (!bBreak && RightPos >= 0 && bitBoard.GetPieceFromPos(RightPos).team != team)
+            while (!doBreak && RightPos >= 0 && Squares[RightPos].Team != team)
             {
                 AddMoveIfValidSquare(team, pos, RightPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(RightPos).team != EChessTeam.None;
+                doBreak = Squares[RightPos].Team != EChessTeam.None;
                 RightPos = new BoardPos(RightPos).GetRight();
             }
         }
 
         public void GetValidBishopMoves(EChessTeam team, int pos, List<Move> moves)
         {
-            bool bBreak = false;
+            bool doBreak = false;
             int TopRightPos = new BoardPos(pos) + new BoardPos(1, 1);
-            while (!bBreak && TopRightPos >= 0 && bitBoard.GetPieceFromPos(TopRightPos).team != team)
+            while (!doBreak && TopRightPos >= 0 && Squares[TopRightPos].Team != team)
             {
 
                 AddMoveIfValidSquare(team, pos, TopRightPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(TopRightPos).team != EChessTeam.None;
+                doBreak = Squares[TopRightPos].Team != EChessTeam.None;
                 TopRightPos = new BoardPos(TopRightPos) + new BoardPos(1, 1);
             }
 
-            bBreak = false;
+            doBreak = false;
             int TopLeftPos = new BoardPos(pos) + new BoardPos(-1, 1);
-            while (!bBreak && TopLeftPos >= 0 && bitBoard.GetPieceFromPos(TopLeftPos).team != team)
+            while (!doBreak && TopLeftPos >= 0 && Squares[TopLeftPos].Team != team)
             {
 
                 AddMoveIfValidSquare(team, pos, TopLeftPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(TopLeftPos).team != EChessTeam.None;
+                doBreak = Squares[TopLeftPos].Team != EChessTeam.None;
                 TopLeftPos = new BoardPos(TopLeftPos) + new BoardPos(-1, 1);
             }
 
-            bBreak = false;
+            doBreak = false;
             int BottomRightPos = new BoardPos(pos) + new BoardPos(1, -1);
-            while (!bBreak && BottomRightPos >= 0 && bitBoard.GetPieceFromPos(BottomRightPos).team != team)
+            while (!doBreak && BottomRightPos >= 0 && Squares[BottomRightPos].Team != team)
             {
 
                 AddMoveIfValidSquare(team, pos, BottomRightPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(BottomRightPos).team != EChessTeam.None;
+                doBreak = Squares[BottomRightPos].Team != EChessTeam.None;
                 BottomRightPos = new BoardPos(BottomRightPos) + new BoardPos(1, -1);
             }
 
-            bBreak = false;
+            doBreak = false;
             int BottomLeftPos = new BoardPos(pos) + new BoardPos(-1, -1);
-            while (!bBreak && BottomLeftPos >= 0 && bitBoard.GetPieceFromPos(BottomLeftPos).team != team)
+            while (!doBreak && BottomLeftPos >= 0 && Squares[BottomLeftPos].Team != team)
             {
 
                 AddMoveIfValidSquare(team, pos, BottomLeftPos, moves);
-                bBreak = bitBoard.GetPieceFromPos(BottomLeftPos).team != EChessTeam.None;
+                doBreak = Squares[BottomLeftPos].Team != EChessTeam.None;
                 BottomLeftPos = new BoardPos(BottomLeftPos) + new BoardPos(-1, -1);
             }
         }
@@ -243,18 +243,20 @@ public partial class ChessGameMgr
 
         public void GetValidMoves(EChessTeam team, List<Move> moves)
         {
-            List<PieceData> pieceDatas = bitBoard.GetAllPiecesListOfColor(team);
-            foreach (PieceData data in pieceDatas)
+            for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; ++i)
             {
-                switch (data.piece)
+                if (Squares[i].Team == team)
                 {
-                    case EPieceType.King: GetValidKingMoves(team, data.pos, moves); break;
-                    case EPieceType.Queen: GetValidQueenMoves(team, data.pos, moves); break;
-                    case EPieceType.Pawn: GetValidPawnMoves(team, data.pos, moves); break;
-                    case EPieceType.Rook: GetValidRookMoves(team, data.pos, moves); break;
-                    case EPieceType.Bishop: GetValidBishopMoves(team, data.pos, moves); break;
-                    case EPieceType.Knight: GetValidKnightMoves(team, data.pos, moves); break;
-                    default: break;
+                    switch (Squares[i].Piece)
+                    {
+                        case EPieceType.King: GetValidKingMoves(team, i, moves); break;
+                        case EPieceType.Queen: GetValidQueenMoves(team, i, moves); break;
+                        case EPieceType.Pawn: GetValidPawnMoves(team, i, moves); break;
+                        case EPieceType.Rook: GetValidRookMoves(team, i, moves); break;
+                        case EPieceType.Bishop: GetValidBishopMoves(team, i, moves); break;
+                        case EPieceType.Knight: GetValidKnightMoves(team, i, moves); break;
+                        default: break;
+                    }
                 }
             }
         }
@@ -267,98 +269,147 @@ public partial class ChessGameMgr
             return validMoves.Contains(move);
         }
 
-        // returns true if a pawn promotion occured
-        public bool PlayUnsafeMove(Move move)
+        // returns move result if a special move occured (pawn promotion, castling...)
+        public EMoveResult PlayUnsafeMove(Move move)
         {
-            bitBoard.MovePiece(move);
+            Squares[move.To] = Squares[move.From];
+
+            BoardSquare square = Squares[move.From];
+            square.Piece = EPieceType.None;
+            square.Team = EChessTeam.None;
+            Squares[move.From] = square;
 
             if (CanPromotePawn(move))
             {
                 // promote pawn to queen
-                bitBoard.PromoteTo(move.To, EPieceType.Queen);
-                return true;
+                BoardSquare destSquare = Squares[move.To];
+                SetPieceAtSquare(move.To, destSquare.Team, EPieceType.Queen);
+                return EMoveResult.Promotion;
             }
-            return false;
+            // Castling move
+            return ComputeCastling(move);
         }
 
         private bool CanPromotePawn(Move move)
         {
-            PieceData tmpData = bitBoard.GetPieceFromPos(move.To);
-            if (tmpData.piece == EPieceType.Pawn)
+            BoardSquare destSquare = Squares[move.To];
+            if (destSquare.Piece == EPieceType.Pawn)
             {
                 BoardPos pos = new BoardPos(move.To);
-                if (tmpData.team == EChessTeam.Black && pos.Y == 0 || tmpData.team == EChessTeam.White && pos.Y == (BOARD_SIZE - 1))
+                if (destSquare.Team == EChessTeam.Black && pos.Y == 0 || destSquare.Team == EChessTeam.White && pos.Y == (BOARD_SIZE - 1))
                     return true;
             }
+            return false;
+        }
+
+        // compute castling move if applicable
+        private EMoveResult ComputeCastling(Move move)
+        {
+            BoardSquare destSquare = Squares[move.To];
+
+            if ((destSquare.Team == EChessTeam.White && isWhiteCastlingDone)
+             || (destSquare.Team == EChessTeam.Black && isBlackCastlingDone))
+                return EMoveResult.Normal;
+
+            // rook piece
+            if (destSquare.Piece == EPieceType.Rook)
+            {
+                // short castling case
+                if ((destSquare.Team == EChessTeam.White && move.From == (BOARD_SIZE - 1) && move.To == 5) // white line
+                 || (destSquare.Team == EChessTeam.Black && move.From == (Squares.Count - 1) && move.To == Squares.Count - 3)) // black line
+                {
+                    if (TryExecuteCastling(move.To, true))
+                        return EMoveResult.Castling_Short;
+                }
+                // long castling case
+                if ((destSquare.Team == EChessTeam.White && move.From == 0 && move.To == 3) // white line
+                || (destSquare.Team == EChessTeam.Black && move.From == (Squares.Count - 8) && move.To == Squares.Count - 5)) // black line
+                {
+                    if (TryExecuteCastling(move.To, false))
+                        return EMoveResult.Castling_Long;
+                }
+            }
+
+            return EMoveResult.Normal;
+        }
+
+        private bool TryExecuteCastling(int moveToIndex, bool isShortCastling)
+        {
+            int kingSquareIndex = isShortCastling ? (moveToIndex - 1) : moveToIndex + 1;
+            int kingFinalSquareIndex = isShortCastling ? (moveToIndex + 1) : moveToIndex - 1;
+            BoardSquare destSquare = Squares[moveToIndex];
+            BoardSquare kingSquare = Squares[kingSquareIndex];
+            if (kingSquare.Piece == EPieceType.King && kingSquare.Team == destSquare.Team)
+            {
+                BoardSquare tempSquare = kingSquare; // king square to be moved
+                Squares[kingSquareIndex] = BoardSquare.Empty(); // replace by empty square
+                Squares[kingFinalSquareIndex] = tempSquare;
+
+                if (destSquare.Team == EChessTeam.White)
+                    isWhiteCastlingDone = true;
+                else
+                    isBlackCastlingDone = true;
+
+                return true;
+            }
+
             return false;
         }
 
         // approximation : opponent king must be "eaten" to win instead of detecting checkmate state
         public bool DoesTeamLose(EChessTeam team)
         {
-            BitBoard.BitBoardIndex index = bitBoard.EPieceTypeToBitBoardIndex(EPieceType.King, team);
-            int idx = 0;
-            int iterator = 0;
-
-            bitBoard.FindFirstSetBit(bitBoard.GetBitBoard(index), ref idx, ref iterator);
-
-            if (idx != -1)
-                return false;
+            for (int i = 0; i < Squares.Count; ++i)
+            {
+                if (Squares[i].Team == team && Squares[i].Piece == EPieceType.King)
+                {
+                    return false;
+                }
+            }
             return true;
         }
 
-        public bool DoesTeamLoseForCustomBoard(EChessTeam team, BoardState tmpBoard)
+        private void SetPieceAtSquare(int index, EChessTeam team, EPieceType piece)
         {
-            BitBoard.BitBoardIndex index = tmpBoard.bitBoard.EPieceTypeToBitBoardIndex(EPieceType.King, team);
-            int idx = 0;
-            int iterator = 0;
-            tmpBoard.bitBoard.FindFirstSetBit(tmpBoard.bitBoard.GetBitBoard(index), ref idx, ref iterator);
-            if (idx != -1)
-                return false;
-            return true;
-        }
-
-        public void SetPieceAtSquare(int index, EChessTeam team, EPieceType piece)
-        {
-            BitBoard.BitBoardIndex tmpIndex = bitBoard.GetBitBoardIndex(team, piece);
-            if(tmpIndex != BitBoard.BitBoardIndex.NONE)
-                bitBoard.SetBitValue(tmpIndex, index, true);
-            bitBoard.SetBitValue(BitBoard.BitBoardIndex.FREE_CASE, index, false);
-            bitBoard.SetBitValue(BitBoard.BitBoardIndex.OCCUPED_CASE, index, true);
+            if (index > Squares.Count)
+                return;
+            BoardSquare square = Squares[index];
+            square.Piece = piece;
+            square.Team = team;
+            Squares[index] = square;
         }
 
         public void Reset()
         {
+            isWhiteCastlingDone = false;
+            isBlackCastlingDone = false;
+
             if (Squares == null)
             {
                 Squares = new List<BoardSquare>();
-                bitBoard = new BitBoard();
-                bitBoard.InitBitBoard();
-                //bitBoard.Test();
 
                 // init squares
                 for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++)
                 {
-                    bitBoard.SetBitValue(BitBoard.BitBoardIndex.FREE_CASE, i + 1, true);
-                    bitBoard.SetBitValue(BitBoard.BitBoardIndex.OCCUPED_CASE, i + 1, false);
+                    BoardSquare square = new BoardSquare();
+                    square.Piece = EPieceType.None;
+                    square.Team = EChessTeam.None;
+                    Squares.Add(square);
                 }
-
             }
             else
             {
-                bitBoard.InitBitBoard();
                 for (int i = 0; i < Squares.Count; ++i)
                 {
                     SetPieceAtSquare(i, EChessTeam.None, EPieceType.None);
                 }
             }
 
-            // White
+             // White
             for (int i = BOARD_SIZE; i < BOARD_SIZE*2; ++i)
             {
                 SetPieceAtSquare(i, EChessTeam.White, EPieceType.Pawn);
             }
-
             SetPieceAtSquare(0, EChessTeam.White, EPieceType.Rook);
             SetPieceAtSquare(1, EChessTeam.White, EPieceType.Knight);
             SetPieceAtSquare(2, EChessTeam.White, EPieceType.Bishop);
@@ -373,7 +424,6 @@ public partial class ChessGameMgr
             {
                 SetPieceAtSquare(i, EChessTeam.Black, EPieceType.Pawn);
             }
-
             int startIndex = BOARD_SIZE * (BOARD_SIZE - 1);
             SetPieceAtSquare(startIndex, EChessTeam.Black, EPieceType.Rook);
             SetPieceAtSquare(startIndex + 1, EChessTeam.Black, EPieceType.Knight);
@@ -383,7 +433,6 @@ public partial class ChessGameMgr
             SetPieceAtSquare(startIndex + 5, EChessTeam.Black, EPieceType.Bishop);
             SetPieceAtSquare(startIndex + 6, EChessTeam.Black, EPieceType.Knight);
             SetPieceAtSquare(startIndex + 7, EChessTeam.Black, EPieceType.Rook);
-
         }
     }
 }

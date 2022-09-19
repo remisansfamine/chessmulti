@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /*
@@ -12,48 +11,49 @@ public partial class ChessGameMgr
 {
     public class TeamPieces
     {
-        private Dictionary<EPieceType, GameObject[]> pieceTypeDict;
+        private GameObject[][] pieceTypeArray;
 
         public TeamPieces()
         {
-            pieceTypeDict = new Dictionary<EPieceType, GameObject[]>();
-
-            pieceTypeDict.Add(EPieceType.Pawn, new GameObject[BOARD_SIZE]);
-            pieceTypeDict.Add(EPieceType.Rook, new GameObject[2]);
-            pieceTypeDict.Add(EPieceType.Bishop, new GameObject[2]);
-            pieceTypeDict.Add(EPieceType.Knight, new GameObject[2]);
-            pieceTypeDict.Add(EPieceType.Queen, new GameObject[1]);
-            pieceTypeDict.Add(EPieceType.King, new GameObject[1]);
+            pieceTypeArray = new GameObject[(uint)EPieceType.NbPieces][];
+            pieceTypeArray[(uint)EPieceType.Pawn] = new GameObject[BOARD_SIZE];
+            pieceTypeArray[(uint)EPieceType.King] = new GameObject[1];
+            pieceTypeArray[(uint)EPieceType.Queen] = new GameObject[1];
+            pieceTypeArray[(uint)EPieceType.Bishop] = new GameObject[2];
+            pieceTypeArray[(uint)EPieceType.Knight] = new GameObject[2];
+            pieceTypeArray[(uint)EPieceType.Rook] = new GameObject[2];
         }
 
         // Add a piece during gameplay - used for pawn promotion
         public void AddPiece(EPieceType type)
         {
-            GameObject[] pieces = new GameObject[pieceTypeDict[type].Length + 1];
-            for (int i = 0; i < pieceTypeDict[type].Length; i++)
-                pieces[i] = pieceTypeDict[type][i];
+            GameObject[] pieces = new GameObject[pieceTypeArray[(uint)type].Length + 1];
+            for (int i = 0; i < pieceTypeArray[(uint)type].Length; i++)
+                pieces[i] = pieceTypeArray[(uint)type][i];
 
-            pieceTypeDict[type] = pieces;
+            pieceTypeArray[(uint)type] = pieces;
         }
 
         public void ClearPromotedPieces()
         {
-            // pawns are only promoted to queen for now
             GameObject[] pieces = new GameObject[1];
-            pieces[0] = pieceTypeDict[EPieceType.Queen][0];
+            pieces[0] = pieceTypeArray[(uint)EPieceType.Queen][0];
 
-            for (int i = 1; i < pieceTypeDict[EPieceType.Queen].Length; i++)
-                Destroy(pieceTypeDict[EPieceType.Queen][i]);
+            for (int i = 1; i < pieceTypeArray[(uint)EPieceType.Queen].Length; i++)
+                Destroy(pieceTypeArray[(uint)EPieceType.Queen][i]);
 
-            pieceTypeDict[EPieceType.Queen] = pieces;
+            pieceTypeArray[(uint)EPieceType.Queen] = pieces;
         }
 
         public void Hide()
         {
-            foreach(KeyValuePair<EPieceType, GameObject[]> kvp in pieceTypeDict)
+            foreach (GameObject[] gaoArray in pieceTypeArray)
             {
-                foreach (GameObject gao in kvp.Value)
-                    gao.SetActive(false);
+                foreach (GameObject gao in gaoArray)
+                {
+                    if (gao)
+                        gao.SetActive(false);
+                }
             }
         }
 
@@ -66,7 +66,7 @@ public partial class ChessGameMgr
 
         public void StorePiece(GameObject crtPiece, EPieceType pieceType)
         {
-            StorePieceInCategory(crtPiece, pieceTypeDict[pieceType]);
+            StorePieceInCategory(crtPiece, pieceTypeArray[(uint)pieceType]);
         }
 
         private void SetPieceCategoryAt(GameObject[] pieceArray, Vector3 pos)
@@ -74,17 +74,13 @@ public partial class ChessGameMgr
             int i = 0;
             while (i < pieceArray.Length && pieceArray[i].activeSelf) i++;
 
-            if(i > pieceArray.Length)
-                throw new AccessViolationException("index is greater then pieceArray length", null);
-
             pieceArray[i].SetActive(true);
             pieceArray[i].transform.position = pos;
         }
 
         public void SetPieceAtPos(EPieceType pieceType, Vector3 pos)
         {
-            SetPieceCategoryAt(pieceTypeDict[pieceType], pos);
+            SetPieceCategoryAt(pieceTypeArray[(uint)pieceType], pos);
         }
-
     }
 }

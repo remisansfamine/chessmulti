@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Threading;
 
 /*
  * This singleton manages the whole chess game
@@ -10,7 +9,8 @@ using System.Threading;
  *  - AI update calls (see UpdateAITurn and ChessAI class)
  */
 
-public partial class ChessGameMgr : MonoBehaviour {
+public partial class ChessGameMgr : MonoBehaviour
+{
 
     #region singleton
     static ChessGameMgr instance = null;
@@ -24,6 +24,9 @@ public partial class ChessGameMgr : MonoBehaviour {
     }
     #endregion
 
+    [SerializeField]
+    private bool IsAIEnabled = true;
+
     private ChessAI chessAI = null;
     private Transform boardTransform = null;
     private static int BOARD_SIZE = 8;
@@ -31,15 +34,16 @@ public partial class ChessGameMgr : MonoBehaviour {
     private int boardLayerMask;
 
     #region enums
-    public enum EPieceType : int
+    public enum EPieceType : uint
     {
-        None = -1,
         Pawn = 0,
-        Rook,
-        Bishop,
-        Knight,
+        King,
         Queen,
-        King
+        Rook,
+        Knight,
+        Bishop,
+        NbPieces,
+        None
     }
 
     public enum EChessTeam
@@ -62,6 +66,20 @@ public partial class ChessGameMgr : MonoBehaviour {
     {
         public EPieceType Piece;
         public EChessTeam Team;
+
+        public BoardSquare(EPieceType p, EChessTeam t)
+        {
+            Piece = p;
+            Team = t;
+        }
+
+        static public BoardSquare Empty()
+        {
+            BoardSquare res;
+            res.Piece = EPieceType.None;
+            res.Team = EChessTeam.None;
+            return res;
+        }
     }
 
     public struct Move
@@ -86,12 +104,12 @@ public partial class ChessGameMgr : MonoBehaviour {
             return From + To;
         }
 
-        public static bool operator == (Move move1, Move move2)
+        public static bool operator ==(Move move1, Move move2)
         {
             return move1.From == move2.From && move1.To == move2.To;
         }
 
-        public static bool operator != (Move move1, Move move2)
+        public static bool operator !=(Move move1, Move move2)
         {
             return move1.From != move2.From || move1.To != move2.To;
         }
@@ -104,11 +122,7 @@ public partial class ChessGameMgr : MonoBehaviour {
     BoardState boardState = null;
     public BoardState GetBoardState() { return boardState; }
 
-    private EChessTeam teamTurn;
-    public EChessTeam TeamTurn
-    {
-        get { return teamTurn; }
-    }
+    EChessTeam teamTurn;
 
     List<uint> scores;
 
@@ -144,10 +158,10 @@ public partial class ChessGameMgr : MonoBehaviour {
     {
         if (boardState.IsValidMove(teamTurn, move))
         {
-            
-            if (boardState.PlayUnsafeMove(move))
+            BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);
+            if (result == BoardState.EMoveResult.Promotion)
             {
-                // promote pawn to queen
+                // instantiate promoted queen gameobject
                 AddQueenAtPos(move.To);
             }
 
@@ -178,8 +192,8 @@ public partial class ChessGameMgr : MonoBehaviour {
     private void AddQueenAtPos(int pos)
     {
         teamPiecesArray[(int)teamTurn].AddPiece(EPieceType.Queen);
-        Dictionary<EPieceType, GameObject> crtTeamPrefabs = (teamTurn == EChessTeam.White) ? WhitePiecesPrefab : BlackPiecesPrefab;
-        GameObject crtPiece = Instantiate<GameObject>(crtTeamPrefabs[EPieceType.Queen]);
+        GameObject[] crtTeamPrefabs = (teamTurn == EChessTeam.White) ? WhitePiecesPrefab : BlackPiecesPrefab;
+        GameObject crtPiece = Instantiate(crtTeamPrefabs[(uint)EPieceType.Queen]);
         teamPiecesArray[(int)teamTurn].StorePiece(crtPiece, EPieceType.Queen);
         crtPiece.transform.position = GetWorldPos(pos);
     }
@@ -189,15 +203,14 @@ public partial class ChessGameMgr : MonoBehaviour {
         return teamTurn == EChessTeam.White;
     }
 
+    public BoardSquare GetSquare(int pos)
+    {
+        return boardState.Squares[pos];
+    }
+
     public uint GetScore(EChessTeam team)
     {
         return scores[(int)team];
-    }
-
-    public int Evaluate(EChessTeam team, BoardState currentBoard)
-    {
-        return currentBoard.bitBoard.Evaluate(team);
-        
     }
 
     private void UpdateBoardPiece(Transform pieceTransform, int destPos)
@@ -231,10 +244,9 @@ public partial class ChessGameMgr : MonoBehaviour {
     private float zOffset = 0.5f;
     private float widthOffset = 3.5f;
 
-    // Use this for initialization
-    void Start () {
-
-        pieceLayerMask= 1 << LayerMask.NameToLayer("Piece");
+    void Start()
+    {
+        pieceLayerMask = 1 << LayerMask.NameToLayer("Piece");
         boardLayerMask = 1 << LayerMask.NameToLayer("Board");
 
         boardTransform = GameObject.FindGameObjectWithTag("Board").transform;
@@ -256,48 +268,51 @@ public partial class ChessGameMgr : MonoBehaviour {
             OnScoreUpdated(scores[0], scores[1]);
     }
 
-	// Update is called once per frame
-	void Update () {
-
+    void Update()
+    {
+        // human player always plays white
         if (teamTurn == EChessTeam.White)
             UpdatePlayerTurn();
-        else
+        // AI plays black
+        else if (IsAIEnabled)
             UpdateAITurn();
+        else
+            UpdatePlayerTurn();
     }
     #endregion
 
     #region pieces
 
-    Dictionary<EPieceType, GameObject> WhitePiecesPrefab = new Dictionary<EPieceType, GameObject>();
-    Dictionary<EPieceType, GameObject> BlackPiecesPrefab = new Dictionary<EPieceType, GameObject>();
+    GameObject[] WhitePiecesPrefab = new GameObject[6];
+    GameObject[] BlackPiecesPrefab = new GameObject[6];
 
     void LoadPiecesPrefab()
     {
         GameObject prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhitePawn");
-        WhitePiecesPrefab.Add(EPieceType.Pawn, prefab);
+        WhitePiecesPrefab[(uint)EPieceType.Pawn] = prefab;
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteKing");
-        WhitePiecesPrefab.Add(EPieceType.King, prefab);
+        WhitePiecesPrefab[(uint)EPieceType.King] = prefab;
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteQueen");
-        WhitePiecesPrefab.Add(EPieceType.Queen, prefab);
-        prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteBishop");
-        WhitePiecesPrefab.Add(EPieceType.Bishop, prefab);
-        prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteKnight");
-        WhitePiecesPrefab.Add(EPieceType.Knight, prefab);
+        WhitePiecesPrefab[(uint)EPieceType.Queen] = prefab;
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteRook");
-        WhitePiecesPrefab.Add(EPieceType.Rook, prefab);
+        WhitePiecesPrefab[(uint)EPieceType.Rook] = prefab;
+        prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteKnight");
+        WhitePiecesPrefab[(uint)EPieceType.Knight] = prefab;
+        prefab = Resources.Load<GameObject>("Prefabs/Pieces/WhiteBishop");
+        WhitePiecesPrefab[(uint)EPieceType.Bishop] = prefab;
 
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackPawn");
-        BlackPiecesPrefab.Add(EPieceType.Pawn, prefab);
+        BlackPiecesPrefab[(uint)EPieceType.Pawn] = prefab;
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackKing");
-        BlackPiecesPrefab.Add(EPieceType.King, prefab);
+        BlackPiecesPrefab[(uint)EPieceType.King] = prefab;
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackQueen");
-        BlackPiecesPrefab.Add(EPieceType.Queen, prefab);
-        prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackBishop");
-        BlackPiecesPrefab.Add(EPieceType.Bishop, prefab);
-        prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackKnight");
-        BlackPiecesPrefab.Add(EPieceType.Knight, prefab);
+        BlackPiecesPrefab[(uint)EPieceType.Queen] = prefab;
         prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackRook");
-        BlackPiecesPrefab.Add(EPieceType.Rook, prefab);
+        BlackPiecesPrefab[(uint)EPieceType.Rook] = prefab;
+        prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackKnight");
+        BlackPiecesPrefab[(uint)EPieceType.Knight] = prefab;
+        prefab = Resources.Load<GameObject>("Prefabs/Pieces/BlackBishop");
+        BlackPiecesPrefab[(uint)EPieceType.Bishop] = prefab;
     }
 
     void CreatePieces()
@@ -308,53 +323,42 @@ public partial class ChessGameMgr : MonoBehaviour {
         if (teamPiecesArray[1] == null)
             teamPiecesArray[1] = new TeamPieces();
 
-        Dictionary<EPieceType, GameObject> crtTeamPrefabs = null;
-            
-        foreach (PieceData data in boardState.bitBoard.GetAllPiecesList())
+        GameObject[] crtTeamPrefabs = null;
+        int crtPos = 0;
+        foreach (BoardSquare square in boardState.Squares)
         {
-            crtTeamPrefabs = (data.team == EChessTeam.White) ? WhitePiecesPrefab : BlackPiecesPrefab;
-            if (data.piece != EPieceType.None)
+            crtTeamPrefabs = (square.Team == EChessTeam.White) ? WhitePiecesPrefab : BlackPiecesPrefab;
+            if (square.Piece != EPieceType.None)
             {
-                GameObject crtPiece = Instantiate<GameObject>(crtTeamPrefabs[data.piece]);
-                teamPiecesArray[(int)data.team].StorePiece(crtPiece, data.piece);
-        
+                GameObject crtPiece = Instantiate(crtTeamPrefabs[(uint)square.Piece]);
+                teamPiecesArray[(int)square.Team].StorePiece(crtPiece, square.Piece);
+
                 // set position
                 Vector3 piecePos = boardTransform.position;
                 piecePos.y += zOffset;
-                piecePos.x = -widthOffset + data.pos % BOARD_SIZE;
-                piecePos.z = -widthOffset + data.pos / BOARD_SIZE;
+                piecePos.x = -widthOffset + crtPos % BOARD_SIZE;
+                piecePos.z = -widthOffset + crtPos / BOARD_SIZE;
                 crtPiece.transform.position = piecePos;
             }
+            crtPos++;
         }
     }
 
-    public void UpdatePieces(BoardState board)
+    void UpdatePieces()
     {
         teamPiecesArray[0].Hide();
         teamPiecesArray[1].Hide();
 
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < boardState.Squares.Count; i++)
         {
-            PieceData data = board.bitBoard.GetPieceFromPos(i);
-
-            if (data.team == EChessTeam.None)
+            BoardSquare square = boardState.Squares[i];
+            if (square.Team == EChessTeam.None)
                 continue;
-            teamPiecesArray[(int)data.team].SetPieceAtPos(data.piece, GetWorldPos(i));
-        }
-    }
 
-    public void UpdatePieces()
-    {
-        teamPiecesArray[0].Hide();
-        teamPiecesArray[1].Hide();
+            int teamId = (int)square.Team;
+            EPieceType pieceType = square.Piece;
 
-        for (int i = 0; i < 64; i++)
-        {
-            PieceData data = boardState.bitBoard.GetPieceFromPos(i);
-
-            if (data.team == EChessTeam.None)
-                continue;
-            teamPiecesArray[(int)data.team].SetPieceAtPos(data.piece, GetWorldPos(i));
+            teamPiecesArray[teamId].SetPieceAtPos(pieceType, GetWorldPos(i));
         }
     }
 
@@ -373,11 +377,6 @@ public partial class ChessGameMgr : MonoBehaviour {
         PlayTurn(move);
 
         UpdatePieces();
-    }
-
-    public void MakeMove(EChessTeam currentTeam, Move move, BoardState currentBoard)
-    {
-        currentBoard.bitBoard.MovePiece(move);
     }
 
     void UpdatePlayerTurn()

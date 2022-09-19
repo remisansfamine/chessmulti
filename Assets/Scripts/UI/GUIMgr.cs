@@ -6,7 +6,8 @@ using System.Collections;
  * Simple GUI display : scores and team turn
  */
 
-public class GUIMgr : MonoBehaviour {
+public class GUIMgr : MonoBehaviour
+{
 
     #region singleton
     static GUIMgr instance = null;
@@ -42,11 +43,6 @@ public class GUIMgr : MonoBehaviour {
         ChessGameMgr.Instance.OnScoreUpdated += UpdateScore;
     }
 	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
     void DisplayTurn(bool isWhiteMove)
     {
         whiteToMoveTr.gameObject.SetActive(isWhiteMove);

@@ -53,6 +53,18 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    async void WaitPlayer()
+    {
+        connectedClient = await server.AcceptTcpClientAsync();
+
+        stream = connectedClient.GetStream();
+
+        partyReady = true;
+
+        byte[] data = BitConverter.GetBytes(true);
+        stream.Write(data, 0, sizeof(bool));
+    }
+
     async void StartServer(int port)
     {
         isHost = true;
@@ -65,17 +77,7 @@ public class PlayerManager : MonoBehaviour
 
         server.Start();
 
-        while (true)
-        {
-            connectedClient = await server.AcceptTcpClientAsync();
-
-            stream = connectedClient.GetStream();
-
-            partyReady = true;
-
-            byte[] data = BitConverter.GetBytes(true);
-            stream.Write(data, 0, sizeof(bool));
-        }
+        WaitPlayer();
     }
 
     public void Host(int port)
@@ -90,16 +92,21 @@ public class PlayerManager : MonoBehaviour
         server.Stop();
     }
 
+    async public void WaitToJoin()
+    {
+        byte[] bytes = new byte[sizeof(bool)];
+        await stream.ReadAsync(bytes, 0, bytes.Length);
+
+        partyReady = BitConverter.ToBoolean(bytes, 0);
+    }
+
     public void Join(string ip, int port)
     {
         currClient = new TcpClient(ip, port);
 
         stream = currClient.GetStream();
 
-        byte[] bytes = new byte[sizeof(bool)];
-        stream.Read(bytes, 0, bytes.Length);
-
-        partyReady = BitConverter.ToBoolean(bytes, 0);
+        WaitToJoin();
     }
 
     public void DisconnectFromServer()
@@ -139,29 +146,16 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    private void Communicate()
-    {
-        if (isHost)
-        {
-            SendNetMessage("Bienvenue dans la partie");
-        }
-        else
-        {
-            string welcomeMessage = ReceiveNetMessage();
-            Debug.Log(welcomeMessage);
-
-            SendNetMessage("Heureux d'être parmis vous !");
-        }
-
-        if (isHost)
-        {
-            string enjoyMessage = ReceiveNetMessage();
-            Debug.Log(enjoyMessage);
-        }
-    }
-
     public void StartGame()
     {
+        if (!partyReady)
+            return;
+
+        if (isHost)
+        {
+            byte[] data = BitConverter.GetBytes(true);
+            stream.Write(data, 0, sizeof(bool));
+        }
 
         OnGameStartEvent.Invoke();
     }

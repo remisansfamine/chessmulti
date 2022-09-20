@@ -3,8 +3,6 @@ using TMPro;
 
 public class Lobby : MonoBehaviour
 {
-    private PlayerManager playerManager;
-
     [SerializeField] private TMP_InputField m_inputClientIP;
     [SerializeField] private TMP_InputField m_inputClientPort;
     [SerializeField] private TMP_InputField m_inputHostPort;
@@ -13,12 +11,12 @@ public class Lobby : MonoBehaviour
 
     private void OnEnable()
     {
-        playerManager.OnGameStartEvent += OnGameStart;
+        m_playerManager.OnGameStartEvent.AddListener(OnGameStart);
     }
 
     private void OnDisable()
     {
-        playerManager.OnGameStartEvent -= OnGameStart;
+        m_playerManager.OnGameStartEvent.RemoveListener(OnGameStart);
     }
 
     private void Update()

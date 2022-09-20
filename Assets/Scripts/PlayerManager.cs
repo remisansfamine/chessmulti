@@ -28,8 +28,8 @@ public class PlayerManager : MonoBehaviour
 
     public int m_port = 30000;
 
-    public UnityEvent OnPartyReady;
-    public UnityEvent OnGameStartEvent;
+    public UnityEvent OnPartyReady = new UnityEvent();
+    public UnityEvent OnGameStartEvent = new UnityEvent();
 
     public static byte[] ObjectToByteArray(object obj)
     {
@@ -135,7 +135,7 @@ public class PlayerManager : MonoBehaviour
         if (partyReady)
         {
             OnPartyReady?.Invoke();
-            OnPartyReady = null;
+            OnPartyReady.RemoveAllListeners();
         }
     }
 

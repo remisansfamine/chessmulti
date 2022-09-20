@@ -96,7 +96,9 @@ public class PlayerManager : MonoBehaviour
     {
         Packet packet = new Packet();
 
-        packet.Serialize(EPacketType.MESSAGE, "Je suis un message");
+        byte[] bytes = packet.Serialize(EPacketType.MESSAGE, "Je suis un message");
+
+        stream.Write(bytes, 0, bytes.Length);
     }
 
     async public void ListenPackets()

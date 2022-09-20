@@ -1,20 +1,40 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class Lobby : MonoBehaviour
 {
     private PlayerManager playerManager;
 
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private TMP_InputField m_inputClientIP;
+    [SerializeField] private TMP_InputField m_inputClientPort;
+    [SerializeField] private TMP_InputField m_inputHostPort;
+    [SerializeField] private TMP_Text       m_playersText;
+    [SerializeField] private PlayerManager  m_playerManager;
+
+    private void Update()
     {
-        
+            
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnHost()
     {
-        
+        int port = int.Parse(m_inputHostPort.text);
+
+        //  DO host server 
+        //m_playerManager.Host(port);
+    }
+
+    public void OnHostStartGame()
+    {
+        //m_playerManager.StartGame();
+    }
+
+    public void OnClientJoin()
+    {
+        string IP = m_inputClientIP.text;
+        int port = int.Parse(m_inputClientPort.text);
+
+        //  DO join 
+        //m_playerManager.Join(IP, port);
     }
 }

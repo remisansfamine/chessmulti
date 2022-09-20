@@ -60,10 +60,16 @@ public class Lobby : MonoBehaviour
         int port = int.Parse(m_inputClientPort.text);
 
         ChangeText(m_joinInfoText, "Trying to join server :" + IP + "\nAt PORT :" + m_inputClientPort.text, new Color(0.65f, 0.98f, 1.0f));
-
+       
         //  DO join 
-        m_playerManager.Join(IP, port);
-
+        try
+        {
+            m_playerManager.Join(IP, port);
+        }
+        catch
+        {
+            ChangeText(m_joinInfoText, "Failed to join server :" + IP + "\nAt PORT :" + m_inputClientPort.text, new Color(1.0f, 0.1f, 0.0f));
+        }
     }
 
     public void OnClientUnjoin()

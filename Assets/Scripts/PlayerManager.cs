@@ -92,6 +92,41 @@ public class PlayerManager : MonoBehaviour
         server.Stop();
     }
 
+    public void SendPacket()
+    {
+        Packet packet = new Packet();
+
+        packet.Serialize(EPacketType.MESSAGE, "Je suis un message");
+    }
+
+    async public void ListenPackets()
+    {
+        var formatter = new BinaryFormatter();
+
+        int headerSize = 0;
+
+        using (var stream = new MemoryStream())
+        {
+            PacketHeader tempHeader = new PacketHeader();
+
+            formatter.Serialize(stream, tempHeader);
+
+            headerSize = (int)stream.Length;
+        }
+
+        byte[] headerBytes = new byte[headerSize];
+        await stream.ReadAsync(headerBytes, 0, headerSize);
+
+        Packet packet = Packet.DeserializeHeader(headerBytes, headerSize);
+
+        packet.datas = new byte[packet.header.size];
+        await stream.ReadAsync(packet.datas, 0, packet.header.size);
+
+        string message = (string)packet.FillObject();
+
+        Debug.Log(message);
+    }
+
     async public void WaitToJoin()
     {
         byte[] bytes = new byte[sizeof(bool)];
@@ -141,6 +176,12 @@ public class PlayerManager : MonoBehaviour
     {
         if (partyReady)
         {
+            if (isHost)
+            {
+                SendPacket();
+            }
+            else ListenPackets();
+
             OnPartyReady?.Invoke();
             OnPartyReady.RemoveAllListeners();
         }

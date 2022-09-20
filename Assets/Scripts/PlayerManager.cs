@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using UnityEngine.Events;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -26,6 +27,9 @@ public class PlayerManager : MonoBehaviour
     NetworkStream stream = null;
 
     public int m_port = 30000;
+
+    public UnityEvent OnPartyReady;
+    public UnityEvent OnGameStartEvent;
 
     public static byte[] ObjectToByteArray(object obj)
     {
@@ -129,7 +133,10 @@ public class PlayerManager : MonoBehaviour
     public void Update()
     {
         if (partyReady)
-            Communicate();
+        {
+            OnPartyReady?.Invoke();
+            OnPartyReady = null;
+        }
     }
 
     private void Communicate()
@@ -151,5 +158,11 @@ public class PlayerManager : MonoBehaviour
             string enjoyMessage = ReceiveNetMessage();
             Debug.Log(enjoyMessage);
         }
+    }
+
+    public void StartGame()
+    {
+
+        OnGameStartEvent.Invoke();
     }
 }

@@ -11,6 +11,16 @@ public class Lobby : MonoBehaviour
     [SerializeField] private TMP_Text       m_playersText;
     [SerializeField] private PlayerManager  m_playerManager;
 
+    private void OnEnable()
+    {
+        playerManager.OnGameStartEvent += OnGameStart;
+    }
+
+    private void OnDisable()
+    {
+        playerManager.OnGameStartEvent -= OnGameStart;
+    }
+
     private void Update()
     {
             
@@ -33,7 +43,12 @@ public class Lobby : MonoBehaviour
 
     public void OnHostStartGame()
     {
-   
+        m_playerManager.StartGame();
+    }
+
+    public void OnGameStart()
+    {
+        gameObject.SetActive(false);
     }
 
     public void OnClientJoin()

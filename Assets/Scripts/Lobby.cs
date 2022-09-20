@@ -16,9 +16,16 @@ public class Lobby : MonoBehaviour
             
     }
 
+    public void OnQuit()
+    {
+        Application.Quit();
+    }
+
     public void OnHost()
     {
         int port = int.Parse(m_inputHostPort.text);
+
+        Debug.Log("Hosting server at PORT :" + m_inputClientPort.text);
 
         //  DO host server 
         m_playerManager.Host(port);
@@ -33,6 +40,8 @@ public class Lobby : MonoBehaviour
     {
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);
+
+        Debug.Log("Trying to join server :" + IP + "\nAt PORT :" + m_inputClientPort.text);
 
         //  DO join 
         m_playerManager.Join(IP, port);

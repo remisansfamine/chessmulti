@@ -49,10 +49,10 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void Host(int port)
+    async void StartServer(int port)
     {
         isHost = true;
-        
+
         m_port = port;
 
         IPAddress localAddr = IPAddress.Parse("127.0.0.1");
@@ -61,13 +61,21 @@ public class PlayerManager : MonoBehaviour
 
         server.Start();
 
-        connectedClient = server.AcceptTcpClient();
+        while (true)
+        {
+            connectedClient = await server.AcceptTcpClientAsync();
 
-        partyReady = true;
+            partyReady = true;
 
-        byte[] data = ObjectToByteArray(true);
+            byte[] data = ObjectToByteArray(true);
 
-        stream.Write(data, 0, 1);
+            stream.Write(data, 0, 1);
+        }
+    }
+
+    public void Host(int port)
+    {
+        StartServer(port);
     }
 
     public void StopHost()

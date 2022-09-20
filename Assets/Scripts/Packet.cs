@@ -67,13 +67,13 @@ class Packet
         return packet;
     }
 
-    public object FillObject()
+    public T FillObject<T>()
     {
         var formatter = new BinaryFormatter();
 
-        using (var stream = new MemoryStream(datas))
+        using (MemoryStream stream = new MemoryStream(datas))
         {
-            return formatter.Deserialize(stream);
+            return (T)formatter.Deserialize(stream);
         }
     }
 }

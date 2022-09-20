@@ -107,13 +107,13 @@ public class PlayerManager : MonoBehaviour
 
         int headerSize = 0;
 
-        using (var stream = new MemoryStream())
+        using (var memStream = new MemoryStream())
         {
             PacketHeader tempHeader = new PacketHeader();
 
-            formatter.Serialize(stream, tempHeader);
+            formatter.Serialize(memStream, tempHeader);
 
-            headerSize = (int)stream.Length;
+            headerSize = (int)memStream.Length;
         }
 
         byte[] headerBytes = new byte[headerSize];
@@ -124,7 +124,7 @@ public class PlayerManager : MonoBehaviour
         packet.datas = new byte[packet.header.size];
         await stream.ReadAsync(packet.datas, 0, packet.header.size);
 
-        string message = (string)packet.FillObject();
+        string message = packet.FillObject<string>();
 
         Debug.Log(message);
     }

@@ -21,12 +21,12 @@ public class Lobby : MonoBehaviour
         int port = int.Parse(m_inputHostPort.text);
 
         //  DO host server 
-        //m_playerManager.Host(port);
+        m_playerManager.Host(port);
     }
 
     public void OnHostStartGame()
     {
-        //m_playerManager.StartGame();
+   
     }
 
     public void OnClientJoin()
@@ -35,6 +35,6 @@ public class Lobby : MonoBehaviour
         int port = int.Parse(m_inputClientPort.text);
 
         //  DO join 
-        //m_playerManager.Join(IP, port);
+        m_playerManager.Join(IP, port);
     }
 }

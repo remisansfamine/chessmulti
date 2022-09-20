@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
+[Serializable]
 public enum EPacketType
 {
     UNDEFINED,
@@ -31,9 +32,10 @@ class Packet
     {
         header.type = type;
 
-        BinaryFormatter formatter = new BinaryFormatter();
         using (var stream = new MemoryStream())
         {
+            BinaryFormatter formatter = new BinaryFormatter();
+
             formatter.Serialize(stream, obj);
 
             datas = stream.ToArray();
@@ -42,24 +44,23 @@ class Packet
 
         using (var stream = new MemoryStream())
         {
-            formatter.Serialize(stream, this);
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            formatter.Serialize(stream, header);
+            stream.Write(datas, 0, datas.Length);
 
             return stream.ToArray();
         }
     }
 
-    public static Packet DeserializeHeader(byte[] packetAsByte, int size)
+    public static Packet DeserializeHeader(byte[] packetAsByte)
     {
         Packet packet = new Packet();
 
         BinaryFormatter formatter = new BinaryFormatter();
 
-        using (var stream = new MemoryStream())
+        using (var stream = new MemoryStream(packetAsByte, 0, packetAsByte.Length))
         {
-            byte[] headerDatas = new byte[size];
-
-            stream.Write(headerDatas, 0, size);
-
             packet.header = (PacketHeader)formatter.Deserialize(stream);
         }
 
@@ -70,9 +71,8 @@ class Packet
     {
         var formatter = new BinaryFormatter();
 
-        using (var stream = new MemoryStream())
+        using (var stream = new MemoryStream(datas))
         {
-            stream.Write(datas, 0, header.size);
             return formatter.Deserialize(stream);
         }
     }

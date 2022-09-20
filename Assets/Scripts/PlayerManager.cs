@@ -119,7 +119,7 @@ public class PlayerManager : MonoBehaviour
         byte[] headerBytes = new byte[headerSize];
         await stream.ReadAsync(headerBytes, 0, headerSize);
 
-        Packet packet = Packet.DeserializeHeader(headerBytes, headerSize);
+        Packet packet = Packet.DeserializeHeader(headerBytes);
 
         packet.datas = new byte[packet.header.size];
         await stream.ReadAsync(packet.datas, 0, packet.header.size);

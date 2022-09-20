@@ -25,7 +25,7 @@ public class Lobby : MonoBehaviour
     {
         int port = int.Parse(m_inputHostPort.text);
 
-        Debug.Log("Hosting server at PORT :" + m_inputClientPort.text);
+        Debug.Log("Hosting server at PORT :" + m_inputHostPort.text);
 
         //  DO host server 
         m_playerManager.Host(port);

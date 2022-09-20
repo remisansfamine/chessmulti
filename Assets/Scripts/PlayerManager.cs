@@ -55,9 +55,9 @@ public class PlayerManager : MonoBehaviour
 
         m_port = port;
 
-        IPAddress localAddr = IPAddress.Parse("127.0.0.1");
+        IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, port);
 
-        server = new TcpListener(localAddr, m_port);
+        server = new TcpListener(serverEP);
 
         server.Start();
 
@@ -65,11 +65,12 @@ public class PlayerManager : MonoBehaviour
         {
             connectedClient = await server.AcceptTcpClientAsync();
 
+            stream = connectedClient.GetStream();
+
             partyReady = true;
 
-            byte[] data = ObjectToByteArray(true);
-
-            stream.Write(data, 0, 1);
+            byte[] data = BitConverter.GetBytes(true);
+            stream.Write(data, 0, sizeof(bool));
         }
     }
 
@@ -91,9 +92,10 @@ public class PlayerManager : MonoBehaviour
 
         stream = currClient.GetStream();
 
-        byte[] bytes = new byte[256];
+        byte[] bytes = new byte[sizeof(bool)];
         stream.Read(bytes, 0, bytes.Length);
-        partyReady = (bool)ByteArrayToObject(bytes);
+
+        partyReady = BitConverter.ToBoolean(bytes, 0);
     }
 
     public void DisconnectFromServer()
@@ -134,14 +136,14 @@ public class PlayerManager : MonoBehaviour
     {
         if (isHost)
         {
-            SendMessage("Bienvenue dans la partie");
+            SendNetMessage("Bienvenue dans la partie");
         }
         else
         {
             string welcomeMessage = ReceiveNetMessage();
             Debug.Log(welcomeMessage);
 
-            SendMessage("Heureux d'être parmis vous !");
+            SendNetMessage("Heureux d'être parmis vous !");
         }
 
         if (isHost)

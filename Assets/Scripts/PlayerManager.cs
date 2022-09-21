@@ -12,6 +12,11 @@ public class PlayerManager : MonoBehaviour
 
     bool enableListener = false;
 
+    string pseudo = "player";
+    public string Pseudo {
+        get{ return pseudo;}
+    }
+
     #region Client
     TcpClient currClient = null;
     #endregion
@@ -28,6 +33,8 @@ public class PlayerManager : MonoBehaviour
     public UnityEvent OnPartyReady = new UnityEvent();
     public UnityEvent OnGameStartEvent = new UnityEvent();
 
+    public UnityEvent<Message> OnChatSentEvent = new UnityEvent<Message>();
+    
     [SerializeField] private ChessGameMgr chessMgr = null;
 
     async void WaitPlayer()
@@ -97,7 +104,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
-    public void SendChatMessage(string message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
+    public void SendChatMessage(Message message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
 
     public void SendPacket(EPacketType type, object toSend)
     {
@@ -127,8 +134,8 @@ public class PlayerManager : MonoBehaviour
                 break;
 
             case EPacketType.CHAT_MESSAGE:
-                string chat_message = toInterpret.FillObject<string>();
-                Debug.Log(chat_message);
+                Message chat_message = toInterpret.FillObject<Message>();
+                OnChatSentEvent.Invoke(chat_message);
                 break;
 
             case EPacketType.TEAM:

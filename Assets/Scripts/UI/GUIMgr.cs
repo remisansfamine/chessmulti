@@ -55,7 +55,7 @@ public class GUIMgr : MonoBehaviour
 
     public void OnChatSend()
     {
-        playerManager.SendPacket(EPacketType.CHAT_MESSAGE, inputChatField.text);
+        playerManager.SendPacket(EPacketType.CHAT_MESSAGE, new Message(playerManager.Pseudo, inputChatField.text));
         inputChatField.text = "";
     }
 }

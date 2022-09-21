@@ -12,6 +12,14 @@ public class Lobby : MonoBehaviour
     [SerializeField] private TMP_Text       m_joinInfoText;
     [SerializeField] private PlayerManager  m_playerManager;
 
+    private void Awake()
+    {
+        m_inputClientIP.text = PlayerPrefs.GetString("Preferences.Client.IP", "");
+        m_inputClientPort.text = PlayerPrefs.GetString("Preferences.Client.Port", "33333");
+
+        m_inputHostPort.text = PlayerPrefs.GetString("Preferences.Host.Port", "33333");
+    }
+
     private void OnEnable()
     {
         m_playerManager.OnGameStartEvent.AddListener(OnGameStart);
@@ -42,6 +50,8 @@ public class Lobby : MonoBehaviour
 
         //  DO host server 
         m_playerManager.Host(port);
+
+        PlayerPrefs.SetString("Preferences.Host.Port", m_inputHostPort.text);
     }
 
     public void OnHostStartGame()
@@ -65,6 +75,9 @@ public class Lobby : MonoBehaviour
         try
         {
             m_playerManager.Join(IP, port);
+
+            PlayerPrefs.SetString("Preferences.Client.IP", m_inputClientIP.text);
+            PlayerPrefs.SetString("Preferences.Client.Port", m_inputClientPort.text);
         }
         catch
         {

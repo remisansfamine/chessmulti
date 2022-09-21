@@ -96,9 +96,27 @@ public class PlayerManager : MonoBehaviour
     {
         Packet packet = new Packet();
 
-        byte[] bytes = packet.Serialize(EPacketType.MESSAGE, "Je suis un messaaaaaage ! :)");
+        byte[] bytes = packet.Serialize(EPacketType.MESSAGE, "SetReady");
 
         stream.Write(bytes);
+    }
+
+    private void InterpretPacket(Packet toInterpret)
+    {
+        switch (toInterpret.header.type)
+        {
+            case EPacketType.MOVEMENTS:
+                break;
+
+            case EPacketType.MESSAGE:
+                string message = toInterpret.FillObject<string>();
+                SendMessage(message);
+                break;
+
+            case EPacketType.UNDEFINED:
+            default:
+                break;
+        }
     }
 
     public void ListenPackets()
@@ -113,9 +131,7 @@ public class PlayerManager : MonoBehaviour
         packet.datas = new byte[packet.header.size];
         stream.Read(packet.datas);
 
-        string message = packet.FillObject<string>();
-
-        Debug.Log(message);
+        InterpretPacket(packet);
     }
 
     async public void WaitToJoin()
@@ -165,17 +181,21 @@ public class PlayerManager : MonoBehaviour
 
     public void Update()
     {
-        if (partyReady)
-        {
-            if (isHost)
-            {
-                SendPacket();
-            }
-            else ListenPackets();
 
-            OnPartyReady?.Invoke();
-            OnPartyReady.RemoveAllListeners();
+    }
+
+    public void SetReady()
+    {
+        partyReady = true;
+
+        if (isHost)
+        {
+            SendPacket();
         }
+        else
+            ListenPackets();
+
+        OnPartyReady.Invoke();
     }
 
     public void StartGame()

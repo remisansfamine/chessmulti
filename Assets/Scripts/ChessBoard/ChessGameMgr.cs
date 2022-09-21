@@ -128,7 +128,8 @@ public partial class ChessGameMgr : MonoBehaviour
     BoardState boardState = null;
     public BoardState GetBoardState() { return boardState; }
 
-    EChessTeam teamTurn;
+    public EChessTeam team;
+    public EChessTeam teamTurn;
 
     List<uint> scores;
 
@@ -189,6 +190,7 @@ public partial class ChessGameMgr : MonoBehaviour
             else
             {
                 teamTurn = otherTeam;
+                m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
             }
             // raise event
             if (OnPlayerTurn != null)
@@ -279,13 +281,11 @@ public partial class ChessGameMgr : MonoBehaviour
     void Update()
     {
         // human player always plays white
-        if (teamTurn == EChessTeam.White)
+        if (teamTurn == team)
             UpdatePlayerTurn();
         // AI plays black
         else if (IsAIEnabled)
             UpdateAITurn();
-        else
-            UpdatePlayerTurn();
     }
     #endregion
 

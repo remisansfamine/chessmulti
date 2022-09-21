@@ -10,6 +10,8 @@ using System.IO;
 public enum EPacketType
 {
     UNDEFINED,
+    TEAM,
+    TEAM_TURN,
     UNITY_MESSAGE,
     MOVEMENTS,
     CHAT_MESSAGE

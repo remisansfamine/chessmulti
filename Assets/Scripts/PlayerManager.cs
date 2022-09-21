@@ -28,6 +28,8 @@ public class PlayerManager : MonoBehaviour
     public UnityEvent OnPartyReady = new UnityEvent();
     public UnityEvent OnGameStartEvent = new UnityEvent();
 
+    [SerializeField] private ChessGameMgr chessMgr = null;
+
     async void WaitPlayer()
     {
         try
@@ -125,6 +127,14 @@ public class PlayerManager : MonoBehaviour
                 Debug.Log(chat_message);
                 break;
 
+            case EPacketType.TEAM:
+                chessMgr.team = toInterpret.FillObject<ChessGameMgr.EChessTeam>();
+                break;
+
+            case EPacketType.TEAM_TURN:
+                chessMgr.teamTurn = toInterpret.FillObject<ChessGameMgr.EChessTeam>();
+                break;
+
             case EPacketType.UNDEFINED:
             default:
                 break;
@@ -215,6 +225,8 @@ public class PlayerManager : MonoBehaviour
     {
         if (isHost)
             SendNetMessage("StartGame");
+
+        SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
 
         OnGameStartEvent.Invoke();
     }

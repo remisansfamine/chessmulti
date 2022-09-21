@@ -96,24 +96,22 @@ public class PlayerManager : MonoBehaviour
     {
         Packet packet = new Packet();
 
-        byte[] bytes = packet.Serialize(EPacketType.MESSAGE, "Je suis un message");
+        byte[] bytes = packet.Serialize(EPacketType.MESSAGE, "Je suis un messaaaaaage ! :)");
 
-        stream.Write(bytes, 0, bytes.Length);
+        stream.Write(bytes);
     }
 
-    async public void ListenPackets()
+    public void ListenPackets()
     {
-        var formatter = new BinaryFormatter();
-
         int headerSize = Packet.PacketSize();
 
         byte[] headerBytes = new byte[headerSize];
-        await stream.ReadAsync(headerBytes, 0, headerSize);
+        stream.Read(headerBytes);
 
         Packet packet = Packet.DeserializeHeader(headerBytes);
 
         packet.datas = new byte[packet.header.size];
-        await stream.ReadAsync(packet.datas, 0, packet.header.size);
+        stream.Read(packet.datas);
 
         string message = packet.FillObject<string>();
 

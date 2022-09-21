@@ -41,7 +41,7 @@ class Packet
         {
             packetStream.Write(headerBytes);
             packetStream.Write(datas);
-            
+
             return packetStream.ToArray();
         }
     }
@@ -55,7 +55,7 @@ class Packet
         return packet;
     }
         
-    public static int PacketSize() => ObjectToByteArray(new Packet()).Length;
+    public static int PacketSize() => ObjectToByteArray(new PacketHeader()).Length;
 
     public T FillObject<T>() => (T)ByteArrayToObject(datas);
 

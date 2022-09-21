@@ -10,9 +10,9 @@ using System.IO;
 public enum EPacketType
 {
     UNDEFINED,
-    MESSAGE,
+    UNITY_MESSAGE,
     MOVEMENTS,
-
+    CHAT_MESSAGE
 }
 
 [Serializable]

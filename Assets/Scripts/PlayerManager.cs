@@ -15,6 +15,8 @@ public class PlayerManager : MonoBehaviour
     bool isHost = false;
     bool partyReady = false;
 
+    bool enableListener = false;
+
     #region Client
     TcpClient currClient = null;
     #endregion
@@ -59,10 +61,7 @@ public class PlayerManager : MonoBehaviour
 
         stream = connectedClient.GetStream();
 
-        partyReady = true;
-
-        byte[] data = BitConverter.GetBytes(true);
-        stream.Write(data, 0, sizeof(bool));
+        SendNetMessage("SetReady");
     }
 
     async void StartServer(int port)
@@ -78,6 +77,10 @@ public class PlayerManager : MonoBehaviour
         server.Start();
 
         WaitPlayer();
+
+        enableListener = true;
+
+        ListenPackets();
     }
 
     public void Host(int port)
@@ -87,16 +90,21 @@ public class PlayerManager : MonoBehaviour
 
     public void StopHost()
     {
+        enableListener = false;
+
         connectedClient.Close();
 
         server.Stop();
     }
 
-    public void SendPacket()
+    public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
+    public void SendChatMessage(string message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
+
+    public void SendPacket(EPacketType type, object toSend)
     {
         Packet packet = new Packet();
 
-        byte[] bytes = packet.Serialize(EPacketType.MESSAGE, "SetReady");
+        byte[] bytes = packet.Serialize(type, toSend);
 
         stream.Write(bytes);
     }
@@ -108,9 +116,14 @@ public class PlayerManager : MonoBehaviour
             case EPacketType.MOVEMENTS:
                 break;
 
-            case EPacketType.MESSAGE:
-                string message = toInterpret.FillObject<string>();
-                SendMessage(message);
+            case EPacketType.UNITY_MESSAGE:
+                string unity_message = toInterpret.FillObject<string>();
+                SendMessage(unity_message);
+                break;
+
+            case EPacketType.CHAT_MESSAGE:
+                string chat_message = toInterpret.FillObject<string>();
+                Debug.Log(chat_message);
                 break;
 
             case EPacketType.UNDEFINED:
@@ -118,28 +131,22 @@ public class PlayerManager : MonoBehaviour
                 break;
         }
     }
-
-    public void ListenPackets()
+    public async void ListenPackets()
     {
-        int headerSize = Packet.PacketSize();
+        while (enableListener)
+        {
+            int headerSize = Packet.PacketSize();
 
-        byte[] headerBytes = new byte[headerSize];
-        stream.Read(headerBytes);
+            byte[] headerBytes = new byte[headerSize];
+            await stream.ReadAsync(headerBytes);
 
-        Packet packet = Packet.DeserializeHeader(headerBytes);
+            Packet packet = Packet.DeserializeHeader(headerBytes);
 
-        packet.datas = new byte[packet.header.size];
-        stream.Read(packet.datas);
+            packet.datas = new byte[packet.header.size];
+            await stream.ReadAsync(packet.datas);
 
-        InterpretPacket(packet);
-    }
-
-    async public void WaitToJoin()
-    {
-        byte[] bytes = new byte[sizeof(bool)];
-        await stream.ReadAsync(bytes, 0, bytes.Length);
-
-        partyReady = BitConverter.ToBoolean(bytes, 0);
+            InterpretPacket(packet);
+        }
     }
 
     public void Join(string ip, int port)
@@ -148,52 +155,22 @@ public class PlayerManager : MonoBehaviour
 
         stream = currClient.GetStream();
 
-        WaitToJoin();
+        enableListener = true;
+
+        ListenPackets();
     }
 
     public void DisconnectFromServer()
     {
+        enableListener = false;
+
         stream.Close();
         currClient.Close();
-    }
-
-    public string ReceiveNetMessage()
-    {
-        byte[] data = new byte[256];
-
-        int bytes = stream.Read(data, 0, data.Length);
-        
-        return System.Text.Encoding.ASCII.GetString(data, 0, bytes);
-    }
-
-    public void SendNetMessage(string message)
-    {
-        try
-        {
-            byte[] datas = Encoding.ASCII.GetBytes(message);
-            stream.Write(datas, 0, datas.Length);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error sending message {e}");
-        }
-    }
-
-    public void Update()
-    {
-
     }
 
     public void SetReady()
     {
         partyReady = true;
-
-        if (isHost)
-        {
-            SendPacket();
-        }
-        else
-            ListenPackets();
 
         OnPartyReady.Invoke();
     }

@@ -217,16 +217,16 @@ public class PlayerManager : MonoBehaviour
         partyReady = true;
 
         OnPartyReady.Invoke();
-
-        SendChatMessage("Noénervé");
     }
 
     public void StartGame()
     {
         if (isHost)
+        {
             SendNetMessage("StartGame");
 
-        SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
+            SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
+        }
 
         OnGameStartEvent.Invoke();
     }

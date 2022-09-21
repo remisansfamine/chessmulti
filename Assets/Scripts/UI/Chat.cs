@@ -42,6 +42,7 @@ public class ChatMessage
     }
 }
 
+[Serializable]
 public class Message
 {
     private string m_pseudo;

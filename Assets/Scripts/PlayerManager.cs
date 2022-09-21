@@ -48,6 +48,10 @@ public class PlayerManager : MonoBehaviour
         {
             Debug.LogError("Server seems stopped " + e);
         }
+
+        enableListener = true;
+
+        ListenPackets();
     }
 
     async void StartServer(int port)
@@ -70,10 +74,6 @@ public class PlayerManager : MonoBehaviour
         }
 
         WaitPlayer();
-
-        enableListener = true;
-
-        //ListenPackets();
     }
 
     public void Host(int port)

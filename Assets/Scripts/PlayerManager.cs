@@ -35,12 +35,19 @@ public class PlayerManager : MonoBehaviour
 
     async void WaitPlayer()
     {
-        connectedClient = await server.AcceptTcpClientAsync();
+        try
+        {
+            connectedClient = await server.AcceptTcpClientAsync();
 
-        stream = connectedClient.GetStream();
+            stream = connectedClient.GetStream();
 
-        SetReady();
-        SendNetMessage("SetReady");
+            SetReady();
+            SendNetMessage("SetReady");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Server seems stopped " + e);
+        }
     }
 
     async void StartServer(int port)
@@ -81,14 +88,15 @@ public class PlayerManager : MonoBehaviour
         try
         {
             connectedClient?.Close();
-
-            server.Stop();
         }
         catch (Exception e)
         {
             Debug.LogError("Error during server closing " + e);
         }
-
+        finally
+        {
+            server.Stop();
+        }
     }
 
     public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);

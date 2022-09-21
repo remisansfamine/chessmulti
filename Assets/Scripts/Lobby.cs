@@ -54,10 +54,17 @@ public class Lobby : MonoBehaviour
         PlayerPrefs.SetString("Preferences.Host.Port", m_inputHostPort.text);
     }
 
+    public void OnHostStop()
+    {
+        m_playerManager.StopHost();
+    }
+
     public void OnHostStartGame()
     {
         m_playerManager.StartGame();
     }
+
+
 
     public void OnGameStart()
     {

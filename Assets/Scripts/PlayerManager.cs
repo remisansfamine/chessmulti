@@ -114,7 +114,15 @@ public class PlayerManager : MonoBehaviour
         {
             case EPacketType.MOVEMENTS:
                 ChessGameMgr.Move move = toInterpret.FillObject<ChessGameMgr.Move>();
-                Debug.Log($"Player moved from {move.From} to {move.To}");
+
+                if (isHost)
+                {
+                    chessMgr.PlayTurn(move);
+                }
+                else
+                {
+                    chessMgr.UpdateTurn(move);
+                }
                 break;
 
             case EPacketType.UNITY_MESSAGE:
@@ -224,6 +232,8 @@ public class PlayerManager : MonoBehaviour
         if (isHost)
         {
             SendNetMessage("StartGame");
+
+            chessMgr.team = ChessGameMgr.EChessTeam.White;
 
             SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
         }

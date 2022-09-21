@@ -129,7 +129,7 @@ public partial class ChessGameMgr : MonoBehaviour
     public BoardState GetBoardState() { return boardState; }
 
     public EChessTeam team;
-    public EChessTeam teamTurn;
+    public EChessTeam teamTurn = EChessTeam.None;
 
     List<uint> scores;
 
@@ -161,41 +161,49 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
-    public void PlayTurn(Move move)
+    public void TryTurn(Move move)
     {
         m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+    }
 
+    public void PlayTurn(Move move)
+    {
         if (boardState.IsValidMove(teamTurn, move))
         {
-            BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);
-            if (result == BoardState.EMoveResult.Promotion)
-            {
-                // instantiate promoted queen gameobject
-                AddQueenAtPos(move.To);
-            }
-
-            EChessTeam otherTeam = (teamTurn == EChessTeam.White) ? EChessTeam.Black : EChessTeam.White;
-            if (boardState.DoesTeamLose(otherTeam))
-            {
-                // increase score and reset board
-                scores[(int)teamTurn]++;
-                if (OnScoreUpdated != null)
-                    OnScoreUpdated(scores[0], scores[1]);
-
-                PrepareGame(false);
-                // remove extra piece instances if pawn promotions occured
-                teamPiecesArray[0].ClearPromotedPieces();
-                teamPiecesArray[1].ClearPromotedPieces();
-            }
-            else
-            {
-                teamTurn = otherTeam;
-                m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
-            }
-            // raise event
-            if (OnPlayerTurn != null)
-                OnPlayerTurn(teamTurn == EChessTeam.White);
+            UpdateTurn(move);
         }
+    }
+
+    public void UpdateTurn(Move move)
+    {
+        BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);
+        if (result == BoardState.EMoveResult.Promotion)
+        {
+            // instantiate promoted queen gameobject
+            AddQueenAtPos(move.To);
+        }
+
+        EChessTeam otherTeam = (teamTurn == EChessTeam.White) ? EChessTeam.Black : EChessTeam.White;
+        if (boardState.DoesTeamLose(otherTeam))
+        {
+            // increase score and reset board
+            scores[(int)teamTurn]++;
+            if (OnScoreUpdated != null)
+                OnScoreUpdated(scores[0], scores[1]);
+
+            PrepareGame(false);
+            // remove extra piece instances if pawn promotions occured
+            teamPiecesArray[0].ClearPromotedPieces();
+            teamPiecesArray[1].ClearPromotedPieces();
+        }
+        else
+        {
+            teamTurn = otherTeam;
+            m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        }
+        // raise event
+        if (OnPlayerTurn != null)
+            OnPlayerTurn(teamTurn == EChessTeam.White);
     }
 
     // used to instantiate newly promoted queen
@@ -382,7 +390,7 @@ public partial class ChessGameMgr : MonoBehaviour
     void UpdateAITurn()
     {
         Move move = chessAI.ComputeMove();
-        PlayTurn(move);
+        TryTurn(move);
 
         UpdatePieces();
     }
@@ -413,7 +421,7 @@ public partial class ChessGameMgr : MonoBehaviour
                 move.From = startPos;
                 move.To = destPos;
 
-                PlayTurn(move);
+                TryTurn(move);
 
                 UpdatePieces();
             }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using TMPro;
 
 /*
  * Simple GUI display : scores and team turn
@@ -22,22 +23,19 @@ public class GUIMgr : MonoBehaviour
     }
     #endregion
 
-    Transform whiteToMoveTr = null;
-    Transform blackToMoveTr = null;
-    Text whiteScoreText = null;
-    Text blackScoreText = null;
+    [SerializeField] private PlayerManager playerManager = null;
+
+    [SerializeField] private Transform whiteToMoveTr = null;
+    [SerializeField] private Transform blackToMoveTr = null;
+    [SerializeField] private Text whiteScoreText = null;
+    [SerializeField] private Text blackScoreText = null;
+    [SerializeField] private TMP_InputField inputChatField = null;
 
     // Use this for initialization
     void Awake()
     {
-        whiteToMoveTr = transform.Find("WhiteTurnText");
-        blackToMoveTr = transform.Find("BlackTurnText");
-
         whiteToMoveTr.gameObject.SetActive(false);
         blackToMoveTr.gameObject.SetActive(false);
-
-        whiteScoreText = transform.Find("WhiteScoreText").GetComponent<Text>();
-        blackScoreText = transform.Find("BlackScoreText").GetComponent<Text>();
 
         ChessGameMgr.Instance.OnPlayerTurn += DisplayTurn;
         ChessGameMgr.Instance.OnScoreUpdated += UpdateScore;
@@ -53,5 +51,11 @@ public class GUIMgr : MonoBehaviour
     {
         whiteScoreText.text = string.Format("White : {0}", whiteScore);
         blackScoreText.text = string.Format("Black : {0}", blackScore);
+    }
+
+    public void OnChatSend()
+    {
+        playerManager.SendPacket(EPacketType.CHAT_MESSAGE, inputChatField.text);
+        inputChatField.text = "";
     }
 }

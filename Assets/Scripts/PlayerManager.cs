@@ -33,34 +33,13 @@ public class PlayerManager : MonoBehaviour
     public UnityEvent OnPartyReady = new UnityEvent();
     public UnityEvent OnGameStartEvent = new UnityEvent();
 
-    public static byte[] ObjectToByteArray(object obj)
-    {
-        BinaryFormatter bf = new BinaryFormatter();
-        using (var ms = new MemoryStream())
-        {
-            bf.Serialize(ms, obj);
-            return ms.ToArray();
-        }
-    }
-
-    public static object ByteArrayToObject(byte[] arrBytes)
-    {
-        using (var memStream = new MemoryStream())
-        {
-            var binForm = new BinaryFormatter();
-            memStream.Write(arrBytes, 0, arrBytes.Length);
-            memStream.Seek(0, SeekOrigin.Begin);
-
-            return binForm.Deserialize(memStream);
-        }
-    }
-
     async void WaitPlayer()
     {
         connectedClient = await server.AcceptTcpClientAsync();
 
         stream = connectedClient.GetStream();
 
+        SetReady();
         SendNetMessage("SetReady");
     }
 
@@ -70,17 +49,24 @@ public class PlayerManager : MonoBehaviour
 
         m_port = port;
 
-        IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, port);
+        try
+        {
+            IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, port);
 
-        server = new TcpListener(serverEP);
+            server = new TcpListener(serverEP);
 
-        server.Start();
+            server.Start();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error during server creation  " + e);
+        }
 
         WaitPlayer();
 
         enableListener = true;
 
-        ListenPackets();
+        //ListenPackets();
     }
 
     public void Host(int port)
@@ -92,9 +78,17 @@ public class PlayerManager : MonoBehaviour
     {
         enableListener = false;
 
-        connectedClient.Close();
+        try
+        {
+            connectedClient?.Close();
 
-        server.Stop();
+            server.Stop();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error during server closing " + e);
+        }
+
     }
 
     public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
@@ -135,25 +129,53 @@ public class PlayerManager : MonoBehaviour
     {
         while (enableListener)
         {
+            if (stream == null)
+                continue;
+            
             int headerSize = Packet.PacketSize();
 
             byte[] headerBytes = new byte[headerSize];
-            await stream.ReadAsync(headerBytes);
 
-            Packet packet = Packet.DeserializeHeader(headerBytes);
+            try
+            {
+                await stream.ReadAsync(headerBytes);
 
-            packet.datas = new byte[packet.header.size];
-            await stream.ReadAsync(packet.datas);
+                Packet packet = Packet.DeserializeHeader(headerBytes);
 
-            InterpretPacket(packet);
+                packet.datas = new byte[packet.header.size];
+                await stream.ReadAsync(packet.datas);
+
+                InterpretPacket(packet);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Exception catch during packets listening " + e);
+
+                if (isHost)
+                {
+                    // TODO: Set deconnection state to client
+                }
+                else
+                {
+                    DisconnectFromServer();
+                }
+            }
         }
     }
 
     public void Join(string ip, int port)
     {
-        currClient = new TcpClient(ip, port);
+        try
+        {
+            currClient = new TcpClient(ip, port);
+            stream = currClient.GetStream();
 
-        stream = currClient.GetStream();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error during server connection " + e);
+        }
+
 
         enableListener = true;
 
@@ -164,8 +186,15 @@ public class PlayerManager : MonoBehaviour
     {
         enableListener = false;
 
-        stream.Close();
-        currClient.Close();
+        try
+        {
+            stream.Close();
+            currClient.Close();
+        }
+        catch (Exception e) 
+        {
+            Debug.LogError("Error during server disconnection " + e);
+        }
     }
 
     public void SetReady()
@@ -173,6 +202,8 @@ public class PlayerManager : MonoBehaviour
         partyReady = true;
 
         OnPartyReady.Invoke();
+
+        SendChatMessage("Noénervé");
     }
 
     public void StartGame()

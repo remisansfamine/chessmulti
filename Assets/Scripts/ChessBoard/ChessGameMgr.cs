@@ -161,21 +161,34 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
-    public void TryTurn(Move move)
+    public bool TryMove(Move move)
     {
-        m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+        bool isValid = boardState.IsValidMove(teamTurn, move);
+        if (isValid)
+        {
+            UpdateTurn(move);
+        }
+
+        return isValid;
     }
 
     public void PlayTurn(Move move)
     {
-        if (boardState.IsValidMove(teamTurn, move))
+        if (m_playerManager.isHost)
         {
-            UpdateTurn(move);
+            if (TryMove(move))
+                UpdateTurn(move);
+        }
+        else
+        {
+            m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
         }
     }
 
     public void UpdateTurn(Move move)
     {
+        m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+
         BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);
         if (result == BoardState.EMoveResult.Promotion)
         {
@@ -204,6 +217,7 @@ public partial class ChessGameMgr : MonoBehaviour
         // raise event
         if (OnPlayerTurn != null)
             OnPlayerTurn(teamTurn == EChessTeam.White);
+
     }
 
     // used to instantiate newly promoted queen
@@ -390,7 +404,7 @@ public partial class ChessGameMgr : MonoBehaviour
     void UpdateAITurn()
     {
         Move move = chessAI.ComputeMove();
-        TryTurn(move);
+        PlayTurn(move);
 
         UpdatePieces();
     }
@@ -421,7 +435,7 @@ public partial class ChessGameMgr : MonoBehaviour
                 move.From = startPos;
                 move.To = destPos;
 
-                TryTurn(move);
+                PlayTurn(move);
 
                 UpdatePieces();
             }

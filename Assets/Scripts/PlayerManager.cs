@@ -7,7 +7,7 @@ using UnityEngine.Events;
 
 public class PlayerManager : MonoBehaviour
 {
-    bool isHost = false;
+    public bool isHost { get; private set; } = false;
     bool partyReady = false;
 
     bool enableListener = false;
@@ -117,11 +117,8 @@ public class PlayerManager : MonoBehaviour
 
                 if (isHost)
                 {
-                    chessMgr.PlayTurn(move);
-                }
-                else
-                {
-                    chessMgr.UpdateTurn(move);
+                    chessMgr.TryMove(move);
+
                 }
                 break;
 

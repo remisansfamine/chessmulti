@@ -105,16 +105,7 @@ public class PlayerManager : MonoBehaviour
     {
         var formatter = new BinaryFormatter();
 
-        int headerSize = 0;
-
-        using (var memStream = new MemoryStream())
-        {
-            PacketHeader tempHeader = new PacketHeader();
-
-            formatter.Serialize(memStream, tempHeader);
-
-            headerSize = (int)memStream.Length;
-        }
+        int headerSize = Packet.PacketSize();
 
         byte[] headerBytes = new byte[headerSize];
         await stream.ReadAsync(headerBytes, 0, headerSize);

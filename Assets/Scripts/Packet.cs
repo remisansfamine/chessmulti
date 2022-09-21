@@ -32,24 +32,17 @@ class Packet
     {
         header.type = type;
 
-        using (var stream = new MemoryStream())
+        datas = ObjectToByteArray(obj);
+        header.size = datas.Length;
+
+        byte[] headerBytes = ObjectToByteArray(header);
+
+        using (MemoryStream packetStream = new MemoryStream())
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-
-            formatter.Serialize(stream, obj);
-
-            datas = stream.ToArray();
-            header.size = datas.Length;
-        }
-
-        using (var stream = new MemoryStream())
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-
-            formatter.Serialize(stream, header);
-            stream.Write(datas, 0, datas.Length);
-
-            return stream.ToArray();
+            packetStream.Write(headerBytes);
+            packetStream.Write(datas);
+            
+            return packetStream.ToArray();
         }
     }
 
@@ -57,23 +50,34 @@ class Packet
     {
         Packet packet = new Packet();
 
-        BinaryFormatter formatter = new BinaryFormatter();
-
-        using (var stream = new MemoryStream(packetAsByte, 0, packetAsByte.Length))
-        {
-            packet.header = (PacketHeader)formatter.Deserialize(stream);
-        }
+        packet.header = (PacketHeader)ByteArrayToObject(packetAsByte);
 
         return packet;
     }
+        
+    public static int PacketSize() => ObjectToByteArray(new Packet()).Length;
 
-    public T FillObject<T>()
+    public T FillObject<T>() => (T)ByteArrayToObject(datas);
+
+    // Convert an object to a byte array
+    public static byte[] ObjectToByteArray(object obj)
     {
-        var formatter = new BinaryFormatter();
-
-        using (MemoryStream stream = new MemoryStream(datas))
+        BinaryFormatter formatter = new BinaryFormatter();
+        using (MemoryStream memstream = new MemoryStream())
         {
-            return (T)formatter.Deserialize(stream);
+            formatter.Serialize(memstream, obj);
+            return memstream.ToArray();
+        }
+    }
+
+    // Convert a byte array to an Object
+    public static object ByteArrayToObject(byte[] arrBytes)
+    {
+        BinaryFormatter formatter = new BinaryFormatter();
+        using (MemoryStream memStream = new MemoryStream(arrBytes))
+        {
+            memStream.Seek(0, SeekOrigin.Begin);
+            return formatter.Deserialize(memStream);
         }
     }
 }

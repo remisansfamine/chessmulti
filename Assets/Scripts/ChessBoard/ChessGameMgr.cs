@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 
 /*
@@ -61,6 +62,10 @@ public partial class ChessGameMgr : MonoBehaviour
     }
     #endregion
 
+    #region networking
+    [SerializeField] private PlayerManager m_playerManager = null;
+    #endregion
+
     #region structs and classes
     public struct BoardSquare
     {
@@ -82,6 +87,7 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
+    [Serializable]
     public struct Move
     {
         public int From;
@@ -156,6 +162,8 @@ public partial class ChessGameMgr : MonoBehaviour
 
     public void PlayTurn(Move move)
     {
+        m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+
         if (boardState.IsValidMove(teamTurn, move))
         {
             BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);

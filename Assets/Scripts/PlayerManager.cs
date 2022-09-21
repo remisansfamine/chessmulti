@@ -1,13 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 using System;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
 using UnityEngine.Events;
 
 public class PlayerManager : MonoBehaviour
@@ -116,6 +111,8 @@ public class PlayerManager : MonoBehaviour
         switch (toInterpret.header.type)
         {
             case EPacketType.MOVEMENTS:
+                ChessGameMgr.Move move = toInterpret.FillObject<ChessGameMgr.Move>();
+                Debug.Log($"Player moved from {move.From} to {move.To}");
                 break;
 
             case EPacketType.UNITY_MESSAGE:
@@ -216,14 +213,8 @@ public class PlayerManager : MonoBehaviour
 
     public void StartGame()
     {
-        if (!partyReady)
-            return;
-
         if (isHost)
-        {
-            byte[] data = BitConverter.GetBytes(true);
-            stream.Write(data, 0, sizeof(bool));
-        }
+            SendNetMessage("StartGame");
 
         OnGameStartEvent.Invoke();
     }

@@ -161,23 +161,17 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
-    public bool TryMove(Move move)
+    public void TryMove(Move move)
     {
-        bool isValid = boardState.IsValidMove(teamTurn, move);
-        if (isValid)
-        {
+        if (boardState.IsValidMove(teamTurn, move))
             UpdateTurn(move);
-        }
-
-        return isValid;
     }
 
     public void PlayTurn(Move move)
     {
         if (m_playerManager.isHost)
         {
-            if (TryMove(move))
-                UpdateTurn(move);
+            TryMove(move);
         }
         else
         {

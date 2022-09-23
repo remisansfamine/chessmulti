@@ -164,7 +164,12 @@ public partial class ChessGameMgr : MonoBehaviour
     public void TryMove(Move move)
     {
         if (boardState.IsValidMove(teamTurn, move))
+        {
             UpdateTurn(move);
+
+            m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+            m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        }
     }
 
     public void PlayTurn(Move move)
@@ -181,8 +186,6 @@ public partial class ChessGameMgr : MonoBehaviour
 
     public void UpdateTurn(Move move)
     {
-        m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
-
         BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);
         if (result == BoardState.EMoveResult.Promotion)
         {
@@ -206,7 +209,6 @@ public partial class ChessGameMgr : MonoBehaviour
         else
         {
             teamTurn = otherTeam;
-            m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
         }
         // raise event
         if (OnPlayerTurn != null)

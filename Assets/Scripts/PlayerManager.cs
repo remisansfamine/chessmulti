@@ -17,6 +17,8 @@ public class PlayerManager : MonoBehaviour
         get{ return pseudo;}
     }
 
+    [SerializeField] PlayerCamera playerCamera;
+
     #region Client
     TcpClient currClient = null;
     #endregion
@@ -196,16 +198,14 @@ public class PlayerManager : MonoBehaviour
             currClient = new TcpClient(ip, port);
             stream = currClient.GetStream();
 
+            enableListener = true;
+
+            ListenPackets();
         }
         catch (Exception e)
         {
             Debug.LogError("Error during server connection " + e);
         }
-
-
-        enableListener = true;
-
-        ListenPackets();
     }
 
     public void DisconnectFromServer()
@@ -240,6 +240,8 @@ public class PlayerManager : MonoBehaviour
 
             SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
         }
+
+        playerCamera.SetCamera(chessMgr.team);
 
         OnGameStartEvent.Invoke();
     }

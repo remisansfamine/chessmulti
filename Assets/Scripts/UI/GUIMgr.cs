@@ -61,6 +61,8 @@ public class GUIMgr : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.Return))
         {
+            if (inputChatField.text.Length == 0) return;
+
             Message msg = new Message(playerManager.Pseudo, inputChatField.text);
             inputChatField.text = "";
 

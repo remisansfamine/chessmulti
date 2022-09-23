@@ -7,6 +7,7 @@ using TMPro;
  * Simple GUI display : scores and team turn
  */
 
+[RequireComponent(typeof(ChatManager))]
 public class GUIMgr : MonoBehaviour
 {
 
@@ -24,6 +25,7 @@ public class GUIMgr : MonoBehaviour
     #endregion
 
     [SerializeField] private PlayerManager playerManager = null;
+    private ChatManager   chatManager = null;
 
     [SerializeField] private Transform whiteToMoveTr = null;
     [SerializeField] private Transform blackToMoveTr = null;
@@ -34,6 +36,8 @@ public class GUIMgr : MonoBehaviour
     // Use this for initialization
     void Awake()
     {
+        chatManager = GetComponent<ChatManager>();
+
         whiteToMoveTr.gameObject.SetActive(false);
         blackToMoveTr.gameObject.SetActive(false);
 
@@ -55,7 +59,13 @@ public class GUIMgr : MonoBehaviour
 
     public void OnChatSend()
     {
-        playerManager.SendPacket(EPacketType.CHAT_MESSAGE, new Message(playerManager.Pseudo, inputChatField.text));
-        inputChatField.text = "";
+        if(Input.GetKeyDown(KeyCode.Return))
+        {
+            Message msg = new Message(playerManager.Pseudo, inputChatField.text);
+            inputChatField.text = "";
+
+            chatManager.SendChatMessage(msg);
+            playerManager.SendPacket(EPacketType.CHAT_MESSAGE, msg);
+        }
     }
 }

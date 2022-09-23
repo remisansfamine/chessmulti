@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class Chat : MonoBehaviour
+public class ChatManager : MonoBehaviour
 {
     [SerializeField] private int m_maxMessage = 100;
 
     [SerializeField] GameObject panel, textObject;
 
-    private List<ChatMessage> m_messages;
+    private List<ChatMessage> m_messages = new List<ChatMessage>();
 
     public void SendChatMessage(Message msg)
     {
@@ -54,7 +54,7 @@ public class Message
         m_pseudo  = pseudo;
         m_message = message;
 
-        m_hour = DateTime.UtcNow.ToString("HH:mm:ss"); ;
+        m_hour = DateTime.UtcNow.ToString("HH:mm:ss");
     }
 
     public string GetComputedMessage()

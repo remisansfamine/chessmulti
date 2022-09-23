@@ -8,6 +8,7 @@ public class Lobby : MonoBehaviour
     [SerializeField] private TMP_InputField m_inputClientIP;
     [SerializeField] private TMP_InputField m_inputClientPort;
     [SerializeField] private TMP_InputField m_inputHostPort;
+    [SerializeField] private TMP_InputField m_pseudonymText;
     [SerializeField] private TMP_Text       m_playersText;
     [SerializeField] private TMP_Text       m_joinInfoText;
     [SerializeField] private PlayerManager  m_playerManager;
@@ -44,9 +45,11 @@ public class Lobby : MonoBehaviour
 
     public void OnHost()
     {
+        m_playerManager.pseudo = m_pseudonymText.text;
+
         int port = int.Parse(m_inputHostPort.text);
 
-        Debug.Log("Hosting server at PORT :" + m_inputHostPort.text);
+        Debug.Log($"Hosting server as {m_playerManager.pseudo} at PORT : {m_inputHostPort.text}");
 
         //  DO host server 
         m_playerManager.Host(port);
@@ -73,6 +76,8 @@ public class Lobby : MonoBehaviour
 
     public void OnClientJoin()
     {
+        m_playerManager.pseudo = m_pseudonymText.text;
+
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);
 

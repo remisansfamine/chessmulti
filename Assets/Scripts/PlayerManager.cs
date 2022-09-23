@@ -12,7 +12,8 @@ public class PlayerManager : MonoBehaviour
 
     bool enableListener = false;
 
-    string pseudo = "player";
+    public string pseudo = "Player";
+
     public string Pseudo {
         get{ return pseudo;}
     }

@@ -224,6 +224,11 @@ public class PlayerManager : MonoBehaviour
     {
         enableListener = false;
 
+        if(!isHost)
+        {
+            SendNetMessage("OnClientDeconnection");
+        }
+
         try
         {
             stream.Close();
@@ -256,5 +261,10 @@ public class PlayerManager : MonoBehaviour
         playerCamera.SetCamera(chessMgr.team);
 
         OnGameStartEvent.Invoke();
+    }
+
+    private void OnDestroy()
+    {
+        DisconnectFromServer();
     }
 }

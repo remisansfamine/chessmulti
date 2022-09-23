@@ -62,10 +62,6 @@ public partial class ChessGameMgr : MonoBehaviour
     }
     #endregion
 
-    #region networking
-    [SerializeField] private PlayerManager m_playerManager = null;
-    #endregion
-
     #region structs and classes
     public struct BoardSquare
     {
@@ -119,6 +115,16 @@ public partial class ChessGameMgr : MonoBehaviour
         {
             return move1.From != move2.From || move1.To != move2.To;
         }
+    }
+
+    #endregion
+
+    #region networking
+    [SerializeField] private PlayerManager m_playerManager = null;
+
+    private void OnClientDeconnection()
+    {
+        IsAIEnabled = true;
     }
 
     #endregion

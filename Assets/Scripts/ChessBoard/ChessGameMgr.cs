@@ -131,6 +131,8 @@ public partial class ChessGameMgr : MonoBehaviour
     public EChessTeam team;
     public EChessTeam teamTurn = EChessTeam.None;
 
+    public Move? currentMove = null;
+
     List<uint> scores;
 
     public delegate void PlayerTurnEvent(bool isWhiteMove);
@@ -163,12 +165,14 @@ public partial class ChessGameMgr : MonoBehaviour
 
     public void TryMove(Move move)
     {
-        if (boardState.IsValidMove(teamTurn, move))
-        {
-            UpdateTurn(move);
+        bool isValid = boardState.IsValidMove(teamTurn, move);
+        m_playerManager.SendPacket(EPacketType.TURN_VALIDITY, isValid);
 
-            m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+        if (isValid)
+        {
             m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+
+            UpdateTurn(move);
         }
     }
 
@@ -182,6 +186,18 @@ public partial class ChessGameMgr : MonoBehaviour
         {
             m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
         }
+    }
+
+    public void ResetTurn()
+    {
+        currentMove = null;
+        UpdatePieces();
+    }
+
+    public void UpdateTurn()
+    {
+        if (currentMove.HasValue)
+            UpdateTurn(currentMove.Value);
     }
 
     public void UpdateTurn(Move move)
@@ -431,6 +447,8 @@ public partial class ChessGameMgr : MonoBehaviour
                 Move move = new Move();
                 move.From = startPos;
                 move.To = destPos;
+
+                currentMove = move;
 
                 PlayTurn(move);
             }

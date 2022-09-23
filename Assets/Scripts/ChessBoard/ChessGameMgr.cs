@@ -182,6 +182,8 @@ public partial class ChessGameMgr : MonoBehaviour
         {
             m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
         }
+
+        UpdatePieces();
     }
 
     public void UpdateTurn(Move move)
@@ -432,8 +434,6 @@ public partial class ChessGameMgr : MonoBehaviour
                 move.To = destPos;
 
                 PlayTurn(move);
-
-                UpdatePieces();
             }
             else
             {

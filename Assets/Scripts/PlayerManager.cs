@@ -126,9 +126,11 @@ public class PlayerManager : MonoBehaviour
 
                 if (isHost)
                     chessMgr.CheckMove(move);
+                else
+                    chessMgr.UpdateTurn(move);
 
                 break;
-            case EPacketType.TURN_VALIDITY:
+            case EPacketType.MOVE_VALIDITY:
                 if (isHost)
                     break;
 

@@ -166,11 +166,14 @@ public partial class ChessGameMgr : MonoBehaviour
     public void CheckMove(Move move)
     {
         bool isValid = boardState.IsValidMove(teamTurn, move);
-        m_playerManager.SendPacket(EPacketType.TURN_VALIDITY, isValid);
+        m_playerManager.SendPacket(EPacketType.MOVE_VALIDITY, isValid);
 
-        if (isValid)
-            m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        if (!isValid)
+            return;
 
+        UpdateTurn(move);
+
+        m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
 
         // SEND TO SPECS THE CORRECT MOVE
     }

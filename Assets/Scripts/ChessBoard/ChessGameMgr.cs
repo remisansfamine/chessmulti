@@ -163,24 +163,27 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
-    public void TryMove(Move move)
+    public bool TryMove(Move move)
     {
         bool isValid = boardState.IsValidMove(teamTurn, move);
         m_playerManager.SendPacket(EPacketType.TURN_VALIDITY, isValid);
 
-        if (isValid)
-        {
-            m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        if (!isValid)
+            return false;
 
-            UpdateTurn(move);
-        }
+        UpdateTurn(move);
+
+        m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+
+        return true;
     }
 
     public void PlayTurn(Move move)
     {
         if (m_playerManager.isHost)
         {
-            TryMove(move);
+            if (!TryMove(move))
+                UpdatePieces();
         }
         else
         {

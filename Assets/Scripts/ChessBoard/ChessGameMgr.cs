@@ -182,8 +182,6 @@ public partial class ChessGameMgr : MonoBehaviour
         {
             m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
         }
-
-        UpdatePieces();
     }
 
     public void UpdateTurn(Move move)
@@ -216,6 +214,7 @@ public partial class ChessGameMgr : MonoBehaviour
         if (OnPlayerTurn != null)
             OnPlayerTurn(teamTurn == EChessTeam.White);
 
+        UpdatePieces();
     }
 
     // used to instantiate newly promoted queen

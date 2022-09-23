@@ -163,13 +163,26 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
-    public bool TryMove(Move move)
+    public void CheckMove(Move move)
     {
         bool isValid = boardState.IsValidMove(teamTurn, move);
         m_playerManager.SendPacket(EPacketType.TURN_VALIDITY, isValid);
 
+        if (isValid)
+            m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+
+
+        // SEND TO SPECS THE CORRECT MOVE
+    }
+
+    public bool TryMove(Move move)
+    {
+        bool isValid = boardState.IsValidMove(teamTurn, move);
+
         if (!isValid)
             return false;
+
+        m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
 
         UpdateTurn(move);
 
@@ -200,7 +213,10 @@ public partial class ChessGameMgr : MonoBehaviour
     public void UpdateTurn()
     {
         if (currentMove.HasValue)
+        {
             UpdateTurn(currentMove.Value);
+            currentMove = null;
+        }
     }
 
     public void UpdateTurn(Move move)

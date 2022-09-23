@@ -123,8 +123,9 @@ public class PlayerManager : MonoBehaviour
         {
             case EPacketType.MOVEMENTS:
                 ChessGameMgr.Move move = toInterpret.FillObject<ChessGameMgr.Move>();
+
                 if (isHost)
-                    chessMgr.TryMove(move);
+                    chessMgr.CheckMove(move);
 
                 break;
             case EPacketType.TURN_VALIDITY:

@@ -234,11 +234,11 @@ public class PlayerManager : MonoBehaviour
     {
         if (isHost)
         {
-            SendNetMessage("StartGame");
-
             chessMgr.team = ChessGameMgr.EChessTeam.White;
 
             SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
+
+            SendNetMessage("StartGame");
         }
 
         playerCamera.SetCamera(chessMgr.team);

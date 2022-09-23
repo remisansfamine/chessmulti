@@ -21,6 +21,11 @@ public class PlayerCamera : MonoBehaviour
         LookAtBoard();
     }
 
+    private void Update()
+    {
+        LookAtBoard();
+    }
+
     private void LookAtBoard()
     {
         Vector3 position = transform.position;

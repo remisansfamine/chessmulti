@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
 
 /*
  * This singleton manages the whole chess game
@@ -33,6 +34,9 @@ public partial class ChessGameMgr : MonoBehaviour
     private static int BOARD_SIZE = 8;
     private int pieceLayerMask;
     private int boardLayerMask;
+
+    [SerializeField] private GameObject endScreen = null;
+    [SerializeField] private TMP_Text winField = null;
 
     #region enums
     public enum EPieceType : uint
@@ -214,7 +218,7 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
-    public void ResetTurn()
+    public void ResetMove()
     {
         currentMove = null;
         UpdatePieces();
@@ -229,6 +233,34 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
+    private void EndGame()
+    {
+        // increase score and reset board
+        scores[(int)teamTurn]++;
+        if (OnScoreUpdated != null)
+            OnScoreUpdated(scores[0], scores[1]);
+
+        if (endScreen)
+        {
+            endScreen.SetActive(true);
+            winField.text = $"{teamTurn.ToString()} team won !";
+        }
+    }
+
+    public void ResetGame()
+    {
+        m_playerManager.SendNetMessage("ResetGame");
+
+        endScreen?.SetActive(false);
+
+        PrepareGame(false);
+        // remove extra piece instances if pawn promotions occured
+        teamPiecesArray[0].ClearPromotedPieces();
+        teamPiecesArray[1].ClearPromotedPieces();
+
+        UpdatePieces();
+    }
+
     public void UpdateTurn(Move move)
     {
         BoardState.EMoveResult result = boardState.PlayUnsafeMove(move);
@@ -241,15 +273,7 @@ public partial class ChessGameMgr : MonoBehaviour
         EChessTeam otherTeam = (teamTurn == EChessTeam.White) ? EChessTeam.Black : EChessTeam.White;
         if (boardState.DoesTeamLose(otherTeam))
         {
-            // increase score and reset board
-            scores[(int)teamTurn]++;
-            if (OnScoreUpdated != null)
-                OnScoreUpdated(scores[0], scores[1]);
-
-            PrepareGame(false);
-            // remove extra piece instances if pawn promotions occured
-            teamPiecesArray[0].ClearPromotedPieces();
-            teamPiecesArray[1].ClearPromotedPieces();
+            EndGame();
         }
         else
         {

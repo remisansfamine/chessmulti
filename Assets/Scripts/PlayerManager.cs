@@ -149,7 +149,7 @@ public class PlayerManager : MonoBehaviour
                 if (isValid)
                     chessMgr.UpdateTurn();
                 else
-                    chessMgr.ResetTurn();
+                    chessMgr.ResetMove();
 
                 break;
             case EPacketType.UNITY_MESSAGE:

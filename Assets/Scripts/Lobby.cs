@@ -15,9 +15,10 @@ public class Lobby : MonoBehaviour
 
     private void Awake()
     {
+        m_pseudonymText.text = PlayerPrefs.GetString("Preferences.Pseudonym", "Player");
+
         m_inputClientIP.text = PlayerPrefs.GetString("Preferences.Client.IP", "");
         m_inputClientPort.text = PlayerPrefs.GetString("Preferences.Client.Port", "33333");
-
         m_inputHostPort.text = PlayerPrefs.GetString("Preferences.Host.Port", "33333");
     }
 
@@ -55,6 +56,7 @@ public class Lobby : MonoBehaviour
         m_playerManager.Host(port);
 
         PlayerPrefs.SetString("Preferences.Host.Port", m_inputHostPort.text);
+        PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
     }
 
     public void OnHostStop()
@@ -90,6 +92,8 @@ public class Lobby : MonoBehaviour
 
             PlayerPrefs.SetString("Preferences.Client.IP", m_inputClientIP.text);
             PlayerPrefs.SetString("Preferences.Client.Port", m_inputClientPort.text);
+
+            PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
         }
         catch
         {

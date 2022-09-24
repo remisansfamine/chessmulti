@@ -41,6 +41,8 @@ public class PlayerManager : MonoBehaviour
     public UnityEvent OnPartyReady = new UnityEvent();
     public UnityEvent OnGameStartEvent = new UnityEvent();
     public UnityEvent OnGameLeaveEvent = new UnityEvent();
+    public UnityEvent OnGamePausedEvent = new UnityEvent();
+    public UnityEvent OnGameResumedEvent = new UnityEvent();
 
     public UnityEvent<Message> OnChatSentEvent = new UnityEvent<Message>();
     
@@ -274,4 +276,6 @@ public class PlayerManager : MonoBehaviour
     }
 
     private void OnDisconnection() => OnGameLeaveEvent.Invoke();
+    private void OnPause() => OnGamePausedEvent.Invoke();
+    private void OnResume() => OnGameResumedEvent.Invoke();
 }

@@ -32,6 +32,7 @@ public class GUIMgr : MonoBehaviour
     [SerializeField] private Text whiteScoreText = null;
     [SerializeField] private Text blackScoreText = null;
     [SerializeField] private TMP_InputField inputChatField = null;
+    [SerializeField] private GameObject pauseMenu = null;
 
     // Use this for initialization
     void Awake()
@@ -69,5 +70,31 @@ public class GUIMgr : MonoBehaviour
             chatManager.SendChatMessage(msg);
             playerManager.SendPacket(EPacketType.CHAT_MESSAGE, msg);
         }
+    }
+
+
+    void Update()
+    {
+        if (!pauseMenu)
+            return;
+
+        if (Input.GetButtonDown("Pause"))
+        {
+            bool isPaused = pauseMenu.activeSelf;
+
+            if (isPaused) Resume();
+            else Pause();
+        }
+    }
+
+    public void Resume()
+    {
+        playerManager.SendNetMessage("OnResume");
+        pauseMenu.SetActive(false);
+    }
+    public void Pause()
+    {
+        playerManager.SendNetMessage("OnPause");
+        pauseMenu.SetActive(true);
     }
 }

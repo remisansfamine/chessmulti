@@ -13,11 +13,6 @@ public class Player : MonoBehaviour
 
     private bool isHost = false;
 
-    void Awake()
-    {
-        m_playerCamera = GetComponent<PlayerCamera>();
-    }
-
     public void StartGame()
     {
         if (isHost)

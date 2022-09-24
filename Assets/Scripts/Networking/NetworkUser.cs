@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 
 using UnityEngine;
@@ -12,7 +10,6 @@ public abstract class NetworkUser : MonoBehaviour
     #region Variables
 
     protected int m_port = 33333;
-    protected bool m_connected = false;
     protected bool m_listen = false;
 
     public string pseudo;
@@ -33,7 +30,7 @@ public abstract class NetworkUser : MonoBehaviour
 
     public virtual void SendPacket(EPacketType type, object toSend)
     {
-        if (m_connected) m_stream.Write(Packet.SerializePacket(type, toSend));
+       m_stream?.Write(Packet.SerializePacket(type, toSend));
     }
 
     protected abstract void ExecuteMovement(Packet toExecute);
@@ -101,8 +98,6 @@ public abstract class NetworkUser : MonoBehaviour
 
     public virtual void Disconnect()
     {
-        m_connected = false;
-
         m_stream?.Close();
         m_stream = null;
 

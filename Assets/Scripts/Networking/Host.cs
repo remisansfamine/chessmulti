@@ -18,15 +18,13 @@ public class Host : NetworkUser
 
     protected List<NetworkStream> m_spectatorsStream = new List<NetworkStream>();
 
-
-
     #endregion
 
     #region MonoBehaviour
 
     private void OnDestroy()
     {
-        if(m_connected) Disconnect();
+        Disconnect();
     }
 
     #endregion
@@ -58,8 +56,6 @@ public class Host : NetworkUser
     {
         try
         {
-            m_connected = true;
-
             connectedClient = await server.AcceptTcpClientAsync();
 
             m_stream = connectedClient.GetStream();
@@ -69,8 +65,6 @@ public class Host : NetworkUser
         catch (Exception e)
         {
             Debug.LogError("Server seems stopped " + e);
-
-            m_connected = false;
         }
 
         ListenPackets();

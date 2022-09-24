@@ -19,7 +19,7 @@ public class Client : NetworkUser
 
     private void OnDestroy()
     {
-        if (m_connected) Disconnect();
+        Disconnect();
     }
 
     #endregion
@@ -64,8 +64,6 @@ public class Client : NetworkUser
         {
             m_currClient = new TcpClient(ip, port);
             m_stream = m_currClient.GetStream();
-
-            m_connected = true;
 
             ListenPackets();
         }
@@ -124,8 +122,8 @@ public class Client : NetworkUser
     {
         try
         {
-            base.Disconnect();
             m_currClient.Close();
+            base.Disconnect();
         }
         catch (Exception e)
         {

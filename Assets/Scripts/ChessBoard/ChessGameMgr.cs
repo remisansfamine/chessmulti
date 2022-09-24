@@ -124,7 +124,7 @@ public partial class ChessGameMgr : MonoBehaviour
     #endregion
 
     #region networking
-    [SerializeField] private PlayerManager m_playerManager = null;
+    [SerializeField] private Player m_player = null;
 
     private void OnClientDisconnection()
     {
@@ -177,13 +177,13 @@ public partial class ChessGameMgr : MonoBehaviour
     public void CheckMove(Move move)
     {
         bool isValid = boardState.IsValidMove(teamTurn, move);
-        m_playerManager.SendPacket(EPacketType.MOVE_VALIDITY, isValid);
+        m_player.networkUser.SendPacket(EPacketType.MOVE_VALIDITY, isValid);
 
         if (!isValid) return;
 
         UpdateTurn(move);
 
-        m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        m_player.networkUser.SendPacket(EPacketType.TEAM_TURN, teamTurn);
 
         // SEND TO SPECS THE CORRECT MOVE
     }
@@ -195,25 +195,25 @@ public partial class ChessGameMgr : MonoBehaviour
         if (!isValid)
             return false;
 
-        m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+        m_player.networkUser.SendPacket(EPacketType.MOVEMENTS, move);
 
         UpdateTurn(move);
 
-        m_playerManager.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        m_player.networkUser.SendPacket(EPacketType.TEAM_TURN, teamTurn);
 
         return true;
     }
 
     public void PlayTurn(Move move)
     {
-        if (m_playerManager.isHost)
+        if (m_player.isHost)
         {
             if (!TryMove(move))
                 UpdatePieces();
         }
         else
         {
-            m_playerManager.SendPacket(EPacketType.MOVEMENTS, move);
+            m_player.networkUser.SendPacket(EPacketType.MOVEMENTS, move);
         }
     }
 

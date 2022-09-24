@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
 
     public UnityEvent OnGameStartEvent = new UnityEvent();
 
-    private bool isHost = false;
+    public bool isHost { get; private set; } = false;
 
     public void StartGame()
     {

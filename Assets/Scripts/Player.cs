@@ -25,7 +25,6 @@ public class Player : MonoBehaviour
             if (host.Stream == null)
             {
                 ChessGameMgr.Instance.EnableAI(true);
-                host.WaitPlayer();
             }
 
             ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;

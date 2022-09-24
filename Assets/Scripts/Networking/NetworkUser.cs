@@ -18,6 +18,7 @@ public abstract class NetworkUser : MonoBehaviour
     protected NetworkStream m_stream = null;
 
     public UnityEvent<Message> OnChatSentEvent = new UnityEvent<Message>();
+    public UnityEvent OnDisconnection = new UnityEvent();
 
 
     #endregion
@@ -120,6 +121,7 @@ public abstract class NetworkUser : MonoBehaviour
             }
         }
     }
+
 
     #endregion
 }

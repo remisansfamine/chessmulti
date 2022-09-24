@@ -99,12 +99,12 @@ public class GUIMgr : MonoBehaviour
 
     public void Resume()
     {
-        playerManager.SendNetMessage("OnResume");
+        player.networkUser.SendNetMessage("OnResume");
         pauseMenu.SetActive(false);
     }
     public void Pause()
     {
-        playerManager.SendNetMessage("OnPause");
+        player.networkUser.SendNetMessage("OnPause");
         pauseMenu.SetActive(true);
     }
 }

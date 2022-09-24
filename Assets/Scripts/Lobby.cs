@@ -44,9 +44,9 @@ public class Lobby : MonoBehaviour
 
     public void OnMainMenu()
     {
-        m_playerManager.SendNetMessage("OnDisconnection");
+        m_player.networkUser.SendNetMessage("OnDisconnection");
 
-        if (m_playerManager.isHost)
+        if (m_player.isHost)
             OnHostStop();
         else
             OnClientUnjoin();

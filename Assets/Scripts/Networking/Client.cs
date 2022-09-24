@@ -43,7 +43,7 @@ public class Client : NetworkUser
     {
         if (toExecute.FillObject<bool>()) ChessGameMgr.Instance.UpdateTurn();
         
-        else ChessGameMgr.Instance.ResetTurn();
+        else ChessGameMgr.Instance.ResetMove();
     }
 
     protected override void InterpretPacket(Packet toInterpret)

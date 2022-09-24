@@ -124,8 +124,6 @@ public class Client : NetworkUser
     {
         try
         {
-            SendNetMessage("OnClientDisconnection");
-
             base.Disconnect();
             m_currClient.Close();
         }

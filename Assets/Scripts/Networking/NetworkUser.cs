@@ -104,6 +104,7 @@ public abstract class NetworkUser : MonoBehaviour
         m_connected = false;
 
         m_stream?.Close();
+        m_stream = null;
 
         OnDisconnection?.Invoke();
     }

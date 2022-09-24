@@ -239,10 +239,10 @@ public class PlayerManager : MonoBehaviour
     {
         enableCommunication = false;
 
-        if(!isHost)
+        /*if(!isHost)
         {
             SendNetMessage("OnClientDisconnection");
-        }
+        }*/
 
         try
         {

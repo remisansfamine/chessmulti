@@ -10,23 +10,23 @@ using System.IO;
 public enum EPacketType
 {
     UNDEFINED,
-    TEAM,
-    TEAM_TURN,
+    MOVEMENTS,
     MOVE_VALIDITY,
     UNITY_MESSAGE,
-    MOVEMENTS,
     CHAT_MESSAGE,
+    TEAM,
+    TEAM_TURN
 }
 
 [Serializable]
-class PacketHeader
+public class PacketHeader
 {
     public EPacketType type = EPacketType.UNDEFINED;
     public int size = 0;
 }
 
 [Serializable]
-class Packet
+public class Packet
 {
     public PacketHeader header = new PacketHeader();
     public byte[] datas;
@@ -48,6 +48,8 @@ class Packet
             return packetStream.ToArray();
         }
     }
+
+    public static byte[] SerializePacket(EPacketType type, object obj) => new Packet().Serialize(type, obj);
 
     public static Packet DeserializeHeader(byte[] packetAsByte)
     {
@@ -84,3 +86,5 @@ class Packet
         }
     }
 }
+
+public delegate void ExecutePacket(Packet toExecute);

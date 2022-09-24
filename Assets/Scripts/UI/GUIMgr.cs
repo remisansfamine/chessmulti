@@ -24,7 +24,8 @@ public class GUIMgr : MonoBehaviour
     }
     #endregion
 
-    [SerializeField] private PlayerManager playerManager = null;
+    //[SerializeField] private PlayerManager playerManager = null;
+    [SerializeField] private Player player = null;
     private ChatManager   chatManager = null;
 
     [SerializeField] private Transform whiteToMoveTr = null;
@@ -38,14 +39,23 @@ public class GUIMgr : MonoBehaviour
     void Awake()
     {
         chatManager = GetComponent<ChatManager>();
-
         whiteToMoveTr.gameObject.SetActive(false);
         blackToMoveTr.gameObject.SetActive(false);
 
         ChessGameMgr.Instance.OnPlayerTurn += DisplayTurn;
         ChessGameMgr.Instance.OnScoreUpdated += UpdateScore;
     }
-	
+
+    private void OnEnable()
+    {
+        player.networkUser.OnChatSentEvent.AddListener(chatManager.SendChatMessage);
+    }
+    private void OnDisable()
+    {
+        player.networkUser.OnChatSentEvent.RemoveListener(chatManager.SendChatMessage);
+    }
+
+
     void DisplayTurn(bool isWhiteMove)
     {
         whiteToMoveTr.gameObject.SetActive(isWhiteMove);
@@ -64,11 +74,11 @@ public class GUIMgr : MonoBehaviour
         {
             if (inputChatField.text.Length == 0) return;
 
-            Message msg = new Message(playerManager.Pseudo, inputChatField.text);
+            Message msg = new Message(player.networkUser.pseudo, inputChatField.text);
             inputChatField.text = "";
 
             chatManager.SendChatMessage(msg);
-            playerManager.SendPacket(EPacketType.CHAT_MESSAGE, msg);
+            player.networkUser.SendPacket(EPacketType.CHAT_MESSAGE, msg);
         }
     }
 

@@ -11,7 +11,8 @@ public class Lobby : MonoBehaviour
     [SerializeField] private TMP_InputField m_pseudonymText;
     [SerializeField] private TMP_Text       m_playersText;
     [SerializeField] private TMP_Text       m_joinInfoText;
-    [SerializeField] private PlayerManager  m_playerManager;
+    //[SerializeField] private PlayerManager  m_playerManager;
+    [SerializeField] private Player  m_player;
 
     private void Awake()
     {
@@ -24,14 +25,14 @@ public class Lobby : MonoBehaviour
 
     private void OnEnable()
     {
-        m_playerManager.OnGameStartEvent.AddListener(OnGameStart);
-        m_playerManager.OnPartyReady.AddListener(OnClientConnected);
+        m_player.OnGameStartEvent.AddListener(OnGameStart);
+        //m_playerManager.OnPartyReady.AddListener(OnClientConnected);
     }
 
     private void OnDisable()
     {
-        m_playerManager.OnGameStartEvent.RemoveListener(OnGameStart);
-        m_playerManager.OnPartyReady.RemoveListener(OnClientConnected);
+        m_player.OnGameStartEvent.RemoveListener(OnGameStart);
+        //m_playerManager.OnPartyReady.RemoveListener(OnClientConnected);
     }
 
     private void Update()
@@ -61,14 +62,13 @@ public class Lobby : MonoBehaviour
 
     public void OnHost()
     {
-        m_playerManager.pseudo = m_pseudonymText.text;
-
         int port = int.Parse(m_inputHostPort.text);
 
-        Debug.Log($"Hosting server as {m_playerManager.pseudo} at PORT : {m_inputHostPort.text}");
-
         //  DO host server 
-        m_playerManager.Host(port);
+        Host host = m_player.SetNetworkState<Host>();
+        host.pseudo = m_pseudonymText.text;
+        host.OpenServer(port);
+        //m_playerManager.Host(port);
 
         PlayerPrefs.SetString("Preferences.Host.Port", m_inputHostPort.text);
         PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
@@ -76,12 +76,16 @@ public class Lobby : MonoBehaviour
 
     public void OnHostStop()
     {
-        m_playerManager.StopHost();
+        Host host = m_player.networkUser as Host;
+
+        if (host) host.CloseServer();
+        //m_playerManager.StopHost();
     }
 
     public void OnHostStartGame()
     {
-        m_playerManager.StartGame();
+        m_player.StartGame();
+        //m_playerManager.StartGame();
     }
 
 
@@ -93,7 +97,9 @@ public class Lobby : MonoBehaviour
 
     public void OnClientJoin()
     {
-        m_playerManager.pseudo = m_pseudonymText.text;
+        Client client = m_player.SetNetworkState<Client>();
+
+        //m_playerManager.pseudo = m_pseudonymText.text;
 
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);
@@ -103,7 +109,7 @@ public class Lobby : MonoBehaviour
         //  DO join 
         try
         {
-            m_playerManager.Join(IP, port);
+            client.Join(IP, port);
 
             PlayerPrefs.SetString("Preferences.Client.IP", m_inputClientIP.text);
             PlayerPrefs.SetString("Preferences.Client.Port", m_inputClientPort.text);
@@ -118,7 +124,8 @@ public class Lobby : MonoBehaviour
 
     public void OnClientUnjoin()
     {
-        m_playerManager.DisconnectFromServer();
+        Client client = m_player.networkUser as Client;
+        client.Disconnect();
     }
 
     public void OnClientConnected()

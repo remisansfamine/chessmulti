@@ -17,7 +17,7 @@ public class PlayerCamera : MonoBehaviour
     private float zOffset = 5f;
 
     [SerializeField]
-    private float teamZOffset= 0f;
+    private float teamZOffset = 0f;
 
     private void Update()
     {

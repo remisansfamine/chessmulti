@@ -82,8 +82,6 @@ public class Lobby : MonoBehaviour
         m_player.StartGame();
     }
 
-
-
     public void OnGameStart()
     {
         gameObject.SetActive(false);

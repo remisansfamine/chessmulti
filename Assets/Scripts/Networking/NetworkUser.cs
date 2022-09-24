@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
@@ -106,29 +107,34 @@ public abstract class NetworkUser : MonoBehaviour
 
                 InterpretPacket(packet);
             }
+            catch (IOException ioe)
+            {
+                ListenPacketCatch(ioe);
+            }
             catch (Exception e)
             {
-                Debug.LogError("Exception catch during packets listening " + e);
-
-                /*if (isHost)
-                {
-                    // TODO: Set disconnection state to client
-                }
-                else
-                {
-                    DisconnectFromServer();
-                }*/
+                ListenPacketCatch(e);
             }
         }
+    }
+
+    protected virtual void ListenPacketCatch(IOException ioe)
+    {
+        Debug.LogError("Exception catch during packets listening " + ioe);
+    }
+
+    protected virtual void ListenPacketCatch(Exception e)
+    {
+        Debug.LogError("Exception catch during packets listening " + e);
     }
 
     public virtual void Disconnect()
     {
         m_connected = false;
 
-        m_stream.Close();
+        m_stream?.Close();
 
-        OnDisconnection.Invoke();
+        OnDisconnection?.Invoke();
     }
 
 

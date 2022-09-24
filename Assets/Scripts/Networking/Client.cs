@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
@@ -70,6 +71,20 @@ public class Client : NetworkUser
                 base.InterpretPacket(toInterpret);
                 break;
         }
+    }
+
+    protected new void ListenPacketCatch(IOException ioe)
+    {
+        base.ListenPacketCatch(ioe);
+
+        Disconnect();
+    }
+
+    protected new void ListenPacketCatch(Exception e)
+    {
+        base.ListenPacketCatch(e);
+
+        Disconnect();
     }
 
     public new void Disconnect()

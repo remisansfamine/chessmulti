@@ -25,7 +25,7 @@ public abstract class NetworkUser : MonoBehaviour
 
     #region Functions
 
-    public virtual void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
+    public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
     public virtual void SendChatMessage(Message message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
 
     public virtual void SendPacket(EPacketType type, object toSend)

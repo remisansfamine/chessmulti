@@ -35,21 +35,16 @@ public class Host : NetworkUser
     public override void SendChatMessage(Message message)
     {
         SendPacket(EPacketType.CHAT_MESSAGE, message);
+        SendSpectatorsPacket(EPacketType.CHAT_MESSAGE, message);
     }
 
-    public override void SendPacket(EPacketType type, object toSend)
+    public void SendSpectatorsPacket(EPacketType type, object toSend)
     {
-        if(m_stream != null)
-        {
-            m_stream.Write(Packet.SerializePacket(type, toSend));
-        }
-
-        foreach(NetworkStream stream in m_spectatorsStream)
+        foreach (NetworkStream stream in m_spectatorsStream)
         {
             stream.Write(Packet.SerializePacket(type, toSend));
         }
     }
-
 
 
     public async void WaitPlayer()

@@ -114,6 +114,35 @@ public class Lobby : MonoBehaviour
         }
     }
 
+    public void OnSpectateJoin()
+    {
+        Spectator spec = m_player.SetNetworkState<Spectator>();
+
+        string IP = m_inputClientIP.text;
+        int port = int.Parse(m_inputClientPort.text);
+
+        ChangeText(m_joinInfoText, "Trying to join server :" + IP + "\nAt PORT :" + m_inputClientPort.text, new Color(0.65f, 0.98f, 1.0f));
+
+        //  DO join 
+        try
+        {
+            spec.Join(IP, port);
+        }
+        catch
+        {
+            ChangeText(m_joinInfoText, "Failed to join server :" + IP + "\nAt PORT :" + m_inputClientPort.text, new Color(1.0f, 0.1f, 0.0f));
+        }
+        finally
+        {
+            PlayerPrefs.SetString("Preferences.Client.IP", m_inputClientIP.text);
+            PlayerPrefs.SetString("Preferences.Client.Port", m_inputClientPort.text);
+
+            PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
+
+            ChangeText(m_joinInfoText, "Successfully connected to " + m_inputClientIP.text + ":" + m_inputClientPort.text, new Color(0.50f, 1.0f, 0.50f));
+        }
+    }
+
     public void OnClientUnjoin()
     {
         Client client = m_player.networkUser as Client;

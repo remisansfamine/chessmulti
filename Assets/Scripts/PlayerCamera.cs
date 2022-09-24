@@ -14,10 +14,10 @@ public class PlayerCamera : MonoBehaviour
     private float height = 32f;
 
     [SerializeField]
-    private float zOffset = 5f;
+    private Vector3 offset = new Vector3(0f,0f,5f);
 
     [SerializeField]
-    private float teamZOffset = 0f;
+    private Vector3 teamOffset = Vector3.zero;
 
     private void Update()
     {
@@ -27,8 +27,9 @@ public class PlayerCamera : MonoBehaviour
     private void LookAtBoard()
     {
         Vector3 position = transform.position;
-        position.z = Mathf.Lerp(position.z, teamZOffset, 0.1f);
+        position.x = Mathf.Lerp(position.x, teamOffset.x, 0.1f);
         position.y = Mathf.Lerp(position.y, height, 0.1f);
+        position.z = Mathf.Lerp(position.z, teamOffset.z, 0.1f);
         transform.position = position;
 
         transform.LookAt(lookAt.position + Vector3.up * lookAtZ);
@@ -36,11 +37,15 @@ public class PlayerCamera : MonoBehaviour
 
     public void SetCamera(ChessGameMgr.EChessTeam team)
     {
-        teamZOffset = -zOffset;
+        teamOffset = new Vector3(5f, 0f, 0f);
 
         if (team == ChessGameMgr.EChessTeam.Black)
         {
-            teamZOffset = zOffset;
+            teamOffset = offset;
+        }
+        else if(team == ChessGameMgr.EChessTeam.White)
+        {
+            teamOffset = -offset;
         }
     }
 }

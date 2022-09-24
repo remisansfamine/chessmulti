@@ -30,6 +30,7 @@ public class Player : MonoBehaviour
             ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
 
             host.SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
+            host.SendSpectatorsPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.None);
 
             host.SendNetMessage("StartGame");
         }

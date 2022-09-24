@@ -11,7 +11,6 @@ public class Lobby : MonoBehaviour
     [SerializeField] private TMP_InputField m_pseudonymText;
     [SerializeField] private TMP_Text       m_playersText;
     [SerializeField] private TMP_Text       m_joinInfoText;
-    //[SerializeField] private PlayerManager  m_playerManager;
     [SerializeField] private Player  m_player;
 
     private void Awake()
@@ -26,13 +25,11 @@ public class Lobby : MonoBehaviour
     private void OnEnable()
     {
         m_player.OnGameStartEvent.AddListener(OnGameStart);
-        //m_playerManager.OnPartyReady.AddListener(OnClientConnected);
     }
 
     private void OnDisable()
     {
         m_player.OnGameStartEvent.RemoveListener(OnGameStart);
-        //m_playerManager.OnPartyReady.RemoveListener(OnClientConnected);
     }
 
     private void Update()
@@ -68,7 +65,6 @@ public class Lobby : MonoBehaviour
         Host host = m_player.SetNetworkState<Host>();
         host.pseudo = m_pseudonymText.text;
         host.OpenServer(port);
-        //m_playerManager.Host(port);
 
         PlayerPrefs.SetString("Preferences.Host.Port", m_inputHostPort.text);
         PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
@@ -79,13 +75,11 @@ public class Lobby : MonoBehaviour
         Host host = m_player.networkUser as Host;
 
         if (host) host.CloseServer();
-        //m_playerManager.StopHost();
     }
 
     public void OnHostStartGame()
     {
         m_player.StartGame();
-        //m_playerManager.StartGame();
     }
 
 
@@ -99,8 +93,6 @@ public class Lobby : MonoBehaviour
     {
         Client client = m_player.SetNetworkState<Client>();
 
-        //m_playerManager.pseudo = m_pseudonymText.text;
-
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);
 
@@ -110,15 +102,19 @@ public class Lobby : MonoBehaviour
         try
         {
             client.Join(IP, port);
-
-            PlayerPrefs.SetString("Preferences.Client.IP", m_inputClientIP.text);
-            PlayerPrefs.SetString("Preferences.Client.Port", m_inputClientPort.text);
-
-            PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
         }
         catch
         {
             ChangeText(m_joinInfoText, "Failed to join server :" + IP + "\nAt PORT :" + m_inputClientPort.text, new Color(1.0f, 0.1f, 0.0f));
+        }
+        finally
+        {
+            PlayerPrefs.SetString("Preferences.Client.IP", m_inputClientIP.text);
+            PlayerPrefs.SetString("Preferences.Client.Port", m_inputClientPort.text);
+
+            PlayerPrefs.SetString("Preferences.Pseudonym", m_pseudonymText.text);
+
+            ChangeText(m_joinInfoText, "Successfully connected to " + m_inputClientIP.text + ":" + m_inputClientPort.text, new Color(0.50f, 1.0f, 0.50f));
         }
     }
 
@@ -126,11 +122,6 @@ public class Lobby : MonoBehaviour
     {
         Client client = m_player.networkUser as Client;
         client.Disconnect();
-    }
-
-    public void OnClientConnected()
-    {
-        ChangeText(m_joinInfoText, "Successfully connected to " + m_inputClientIP.text + ":" + m_inputClientPort.text, new Color(0.50f, 1.0f, 0.50f));
     }
 
     private void ChangeText(TMP_Text textUi, string text, Color color)

@@ -13,10 +13,12 @@ public abstract class NetworkUser : MonoBehaviour
 
     protected int m_port = 33333;
     protected bool m_connected = false;
+    protected bool m_listen = false;
 
     public string pseudo;
 
     protected NetworkStream m_stream = null;
+    public NetworkStream Stream { get { return m_stream; } }
 
     public UnityEvent<Message> OnChatSentEvent = new UnityEvent<Message>();
     public UnityEvent OnDisconnection = new UnityEvent();
@@ -26,10 +28,10 @@ public abstract class NetworkUser : MonoBehaviour
 
     #region Functions
 
-    public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
-    public void SendChatMessage(Message message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
+    public virtual void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
+    public virtual void SendChatMessage(Message message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
 
-    public void SendPacket(EPacketType type, object toSend)
+    public virtual void SendPacket(EPacketType type, object toSend)
     {
         if (m_connected) m_stream.Write(Packet.SerializePacket(type, toSend));
     }
@@ -85,38 +87,7 @@ public abstract class NetworkUser : MonoBehaviour
 
 
 
-    public async void ListenPackets()
-    {
-        while (m_connected)
-        {
-            if (m_stream == null)
-                continue;
-
-            int headerSize = Packet.PacketSize();
-
-            byte[] headerBytes = new byte[headerSize];
-
-            try
-            {
-                await m_stream.ReadAsync(headerBytes);
-
-                Packet packet = Packet.DeserializeHeader(headerBytes);
-
-                packet.datas = new byte[packet.header.size];
-                await m_stream.ReadAsync(packet.datas);
-
-                InterpretPacket(packet);
-            }
-            catch (IOException ioe)
-            {
-                ListenPacketCatch(ioe);
-            }
-            catch (Exception e)
-            {
-                ListenPacketCatch(e);
-            }
-        }
-    }
+    public abstract void ListenPackets();
 
     protected virtual void ListenPacketCatch(IOException ioe)
     {

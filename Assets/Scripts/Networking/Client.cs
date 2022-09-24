@@ -25,6 +25,39 @@ public class Client : NetworkUser
     #endregion
 
     #region Functions
+
+    public override void ListenPackets() => ListenServer();
+
+    public async void ListenServer()
+    {
+        while (m_stream != null)
+        {
+            int headerSize = Packet.PacketSize();
+
+            byte[] headerBytes = new byte[headerSize];
+
+            try
+            {
+                await m_stream.ReadAsync(headerBytes);
+
+                Packet packet = Packet.DeserializeHeader(headerBytes);
+
+                packet.datas = new byte[packet.header.size];
+                await m_stream.ReadAsync(packet.datas);
+
+                InterpretPacket(packet);
+            }
+            catch (IOException ioe)
+            {
+                ListenPacketCatch(ioe);
+            }
+            catch (Exception e)
+            {
+                ListenPacketCatch(e);
+            }
+        }
+    }
+
     public void Join(string ip, int port)
     {
         try
@@ -91,6 +124,8 @@ public class Client : NetworkUser
     {
         try
         {
+            SendNetMessage("OnClientDisconnection");
+
             base.Disconnect();
             m_currClient.Close();
         }

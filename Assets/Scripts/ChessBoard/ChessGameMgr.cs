@@ -152,6 +152,12 @@ public partial class ChessGameMgr : MonoBehaviour
     public delegate void ScoreUpdateEvent(uint whiteScore, uint blackScore);
     public event ScoreUpdateEvent OnScoreUpdated = null;
 
+
+    public void EnableAI(bool value)
+    {
+        IsAIEnabled = value;
+    }
+
     public void PrepareGame(bool resetScore = true)
     {
         chessAI = ChessAI.Instance;

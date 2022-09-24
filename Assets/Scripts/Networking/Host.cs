@@ -1,6 +1,8 @@
 using UnityEngine;
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine.Events;
@@ -13,6 +15,9 @@ public class Host : NetworkUser
 
     TcpListener server = null;
     TcpClient connectedClient = null;
+
+    protected List<NetworkStream> m_spectatorsStream = new List<NetworkStream>();
+
 
 
     #endregion
@@ -28,6 +33,27 @@ public class Host : NetworkUser
 
     #region Functions
 
+
+    public override void SendChatMessage(Message message)
+    {
+        SendPacket(EPacketType.CHAT_MESSAGE, message);
+    }
+
+    public override void SendPacket(EPacketType type, object toSend)
+    {
+        if(m_stream != null)
+        {
+            m_stream.Write(Packet.SerializePacket(type, toSend));
+        }
+
+        foreach(NetworkStream stream in m_spectatorsStream)
+        {
+            stream.Write(Packet.SerializePacket(type, toSend));
+        }
+    }
+
+
+
     async void WaitPlayer()
     {
         try
@@ -37,9 +63,6 @@ public class Host : NetworkUser
             connectedClient = await server.AcceptTcpClientAsync();
 
             m_stream = connectedClient.GetStream();
-
-            //SetReady();
-            //SendNetMessage("SetReady");
         }
         catch (Exception e)
         {
@@ -47,7 +70,6 @@ public class Host : NetworkUser
 
             m_connected = false;
         }
-
 
         ListenPackets();
     }
@@ -72,6 +94,54 @@ public class Host : NetworkUser
         WaitPlayer();
     }
 
+    public override void ListenPackets()
+    {
+        // Create 2 different threads to avoid getting stuck on client read
+        ListeClientPackets();
+        ListeSpectatorPackets();
+    }
+
+    public async void ListeClientPackets()
+    {
+        while (m_stream != null)
+        {
+            int headerSize = Packet.PacketSize();
+
+            byte[] headerBytes = new byte[headerSize];
+
+            try
+            {
+                await m_stream.ReadAsync(headerBytes);
+
+                Packet packet = Packet.DeserializeHeader(headerBytes);
+
+                packet.datas = new byte[packet.header.size];
+                await m_stream.ReadAsync(packet.datas);
+
+                InterpretPacket(packet);
+            }
+            catch (IOException ioe)
+            {
+                ListenPacketCatch(ioe);
+            }
+            catch (Exception e)
+            {
+                ListenPacketCatch(e);
+            }
+        }
+    }
+
+    public async void ListeSpectatorPackets()
+    {
+        while (m_spectatorsStream.Count > 0)
+        {
+            foreach(NetworkStream stream in m_spectatorsStream)
+            {
+
+            }
+        }
+    }
+
     protected override void ExecuteMovement(Packet toExecute)
     {
         ChessGameMgr.Move move = toExecute.FillObject<ChessGameMgr.Move>();
@@ -93,6 +163,25 @@ public class Host : NetworkUser
                 base.InterpretPacket(toInterpret);
                 break;
         }
+    }
+
+    protected override void ListenPacketCatch(IOException ioe)
+    {
+        OnClientDisconnection();
+    }
+
+    protected override void ListenPacketCatch(Exception e)
+    {
+        OnClientDisconnection();
+    }
+
+
+    private void OnClientDisconnection()
+    {
+        m_stream.Close();
+        m_stream = null;
+
+        ChessGameMgr.Instance.EnableAI(true);
     }
 
     public new void Disconnect()

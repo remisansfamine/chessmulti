@@ -106,8 +106,6 @@ public class Client : NetworkUser
 
     protected new void ListenPacketCatch(IOException ioe)
     {
-        base.ListenPacketCatch(ioe);
-
         Disconnect();
     }
 

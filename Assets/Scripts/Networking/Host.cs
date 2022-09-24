@@ -60,14 +60,17 @@ public class Host : NetworkUser
 
             m_stream = connectedClient.GetStream();
 
-            if(m_stream != null) ChessGameMgr.Instance.EnableAI(false);
         }
         catch (Exception e)
         {
             Debug.LogError("Server seems stopped " + e);
         }
+        finally
+        {
+            if (m_stream != null) ChessGameMgr.Instance.EnableAI(false);
 
-        ListenPackets();
+            ListenPackets();
+        }
     }
 
     public void OpenServer(int port)

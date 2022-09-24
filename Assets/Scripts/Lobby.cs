@@ -39,6 +39,21 @@ public class Lobby : MonoBehaviour
             
     }
 
+    public void OnOtherPlayerDisconnection()
+    {
+        Debug.Log("Other player disconnected");
+    }
+
+    public void OnMainMenu()
+    {
+        m_playerManager.SendNetMessage("OnDisconnection");
+
+        if (m_playerManager.isHost)
+            OnHostStop();
+        else
+            OnClientUnjoin();
+    }
+
     public void OnQuit()
     {
         Application.Quit();

@@ -15,7 +15,7 @@ public enum EPacketType
     MOVE_VALIDITY,
     UNITY_MESSAGE,
     MOVEMENTS,
-    CHAT_MESSAGE
+    CHAT_MESSAGE,
 }
 
 [Serializable]

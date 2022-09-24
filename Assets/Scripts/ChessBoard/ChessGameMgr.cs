@@ -122,14 +122,15 @@ public partial class ChessGameMgr : MonoBehaviour
     #region networking
     [SerializeField] private PlayerManager m_playerManager = null;
 
-    private void OnClientDeconnection()
+    private void OnClientDisconnection()
     {
+        Debug.Log("Client disconnected, AI is now activated");
         IsAIEnabled = true;
     }
 
     #endregion
 
-    #region chess game methods
+    #region chess game method
 
     BoardState boardState = null;
     public BoardState GetBoardState() { return boardState; }

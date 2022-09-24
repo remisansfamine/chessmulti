@@ -10,7 +10,12 @@ public class PlayerManager : MonoBehaviour
     public bool isHost { get; private set; } = false;
     bool partyReady = false;
 
-    bool enableListener = false;
+    bool enableCommunication = false;
+
+    public bool EnableCommunication
+    {
+        get { return enableCommunication; }
+    }
 
     public string pseudo = "Player";
 
@@ -44,6 +49,8 @@ public class PlayerManager : MonoBehaviour
     {
         try
         {
+            enableCommunication = true;
+
             connectedClient = await server.AcceptTcpClientAsync();
 
             stream = connectedClient.GetStream();
@@ -54,14 +61,15 @@ public class PlayerManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("Server seems stopped " + e);
+
+            enableCommunication = false;
         }
 
-        enableListener = true;
 
         ListenPackets();
     }
 
-    async void StartServer(int port)
+    void StartServer(int port)
     {
         isHost = true;
 
@@ -90,7 +98,7 @@ public class PlayerManager : MonoBehaviour
 
     public void StopHost()
     {
-        enableListener = false;
+        enableCommunication = false;
 
         try
         {
@@ -111,6 +119,8 @@ public class PlayerManager : MonoBehaviour
 
     public void SendPacket(EPacketType type, object toSend)
     {
+        if (!enableCommunication) return;
+        
         Packet packet = new Packet();
 
         byte[] bytes = packet.Serialize(type, toSend);
@@ -167,7 +177,7 @@ public class PlayerManager : MonoBehaviour
     }
     public async void ListenPackets()
     {
-        while (enableListener)
+        while (enableCommunication)
         {
             if (stream == null)
                 continue;
@@ -193,7 +203,7 @@ public class PlayerManager : MonoBehaviour
 
                 if (isHost)
                 {
-                    // TODO: Set deconnection state to client
+                    // TODO: Set disconnection state to client
                 }
                 else
                 {
@@ -210,7 +220,7 @@ public class PlayerManager : MonoBehaviour
             currClient = new TcpClient(ip, port);
             stream = currClient.GetStream();
 
-            enableListener = true;
+            enableCommunication = true;
 
             ListenPackets();
         }
@@ -222,11 +232,11 @@ public class PlayerManager : MonoBehaviour
 
     public void DisconnectFromServer()
     {
-        enableListener = false;
+        enableCommunication = false;
 
         if(!isHost)
         {
-            SendNetMessage("OnClientDeconnection");
+            SendNetMessage("OnClientDisconnection");
         }
 
         try
@@ -238,6 +248,11 @@ public class PlayerManager : MonoBehaviour
         {
             Debug.LogError("Error during server disconnection " + e);
         }
+    }
+
+    private void OnClientDisconnection()
+    {
+        DisconnectFromServer();
     }
 
     public void SetReady()

@@ -20,11 +20,19 @@ public class Player : MonoBehaviour
     {
         if (isHost)
         {
+            Host host = networkUser as Host;
+
+            if (host.Stream == null)
+            {
+                ChessGameMgr.Instance.EnableAI(true);
+                host.WaitPlayer();
+            }
+
             ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
 
-            networkUser.SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
+            host.SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
 
-            networkUser.SendNetMessage("StartGame");
+            host.SendNetMessage("StartGame");
         }
 
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);

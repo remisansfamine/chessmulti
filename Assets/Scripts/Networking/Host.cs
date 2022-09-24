@@ -54,7 +54,7 @@ public class Host : NetworkUser
 
 
 
-    async void WaitPlayer()
+    public async void WaitPlayer()
     {
         try
         {
@@ -63,6 +63,8 @@ public class Host : NetworkUser
             connectedClient = await server.AcceptTcpClientAsync();
 
             m_stream = connectedClient.GetStream();
+
+            if(m_stream != null) ChessGameMgr.Instance.EnableAI(false);
         }
         catch (Exception e)
         {

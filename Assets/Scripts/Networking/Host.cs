@@ -17,6 +17,15 @@ public class Host : NetworkUser
 
     #endregion
 
+    #region MonoBehaviour
+
+    private void OnDestroy()
+    {
+        if(m_connected) Disconnect();
+    }
+
+    #endregion
+
     #region Functions
 
     async void WaitPlayer()
@@ -63,25 +72,6 @@ public class Host : NetworkUser
         WaitPlayer();
     }
 
-    public void CloseServer()
-    {
-        m_connected = false;
-
-        try
-        {
-            connectedClient?.Close();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Error during server closing " + e);
-        }
-        finally
-        {
-            server.Stop();
-        }
-    }
-
-
     protected override void ExecuteMovement(Packet toExecute)
     {
         ChessGameMgr.Move move = toExecute.FillObject<ChessGameMgr.Move>();
@@ -102,6 +92,24 @@ public class Host : NetworkUser
             default:
                 base.InterpretPacket(toInterpret);
                 break;
+        }
+    }
+
+    public new void Disconnect()
+    {
+        try
+        {
+            connectedClient?.Close();
+
+            base.Disconnect();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error during server closing " + e);
+        }
+        finally
+        {
+            server.Stop();
         }
     }
     #endregion

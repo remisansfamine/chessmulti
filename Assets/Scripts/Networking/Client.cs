@@ -14,6 +14,15 @@ public class Client : NetworkUser
 
     #endregion
 
+    #region MonoBehaviour
+
+    private void OnDestroy()
+    {
+        if (m_connected) Disconnect();
+    }
+
+    #endregion
+
     #region Functions
     public void Join(string ip, int port)
     {
@@ -63,13 +72,11 @@ public class Client : NetworkUser
         }
     }
 
-    public void Disconnect()
+    public new void Disconnect()
     {
-        m_connected = false;
-
         try
         {
-            m_stream.Close();
+            base.Disconnect();
             m_currClient.Close();
         }
         catch (Exception e)

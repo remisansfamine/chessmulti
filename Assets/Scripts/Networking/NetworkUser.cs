@@ -122,6 +122,15 @@ public abstract class NetworkUser : MonoBehaviour
         }
     }
 
+    public virtual void Disconnect()
+    {
+        m_connected = false;
+
+        m_stream.Close();
+
+        OnDisconnection.Invoke();
+    }
+
 
     #endregion
 }

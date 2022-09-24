@@ -74,7 +74,7 @@ public class Lobby : MonoBehaviour
     {
         Host host = m_player.networkUser as Host;
 
-        if (host) host.CloseServer();
+        if (host) host.Disconnect();
     }
 
     public void OnHostStartGame()

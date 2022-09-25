@@ -37,6 +37,10 @@ public class Player : MonoBehaviour
                 ChessGameMgr.Instance.EnableAI(true);
             }
         }
+        else
+        { 
+            ChessGameMgr.Instance.EnableAI(false); 
+        }
 
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);
 

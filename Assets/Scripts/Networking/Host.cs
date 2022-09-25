@@ -311,8 +311,11 @@ public class Host : NetworkUser
         {
             SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.SPECTATOR, m_clients[currentOpponent].stream);
 
-            if(index >= 0) SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.PLAYER, m_clients[index].stream);
-
+            if (index >= 0)
+            {
+                SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.PLAYER, m_clients[index].stream);
+                ChessGameMgr.Instance.EnableAI(false);
+            }
             else ChessGameMgr.Instance.EnableAI(true);
         }
         else // Is cuurently AI

@@ -187,6 +187,20 @@ public class Host : NetworkUser
         client.verified = true;
     }
 
+    private void ExecuteHostChatMessage(Packet toExecute, ClientInfo client)
+    {
+        Message chat_message = toExecute.FillObject<Message>();
+        OnChatSentEvent.Invoke(chat_message);
+
+        //  Send this chat message to everyone beside the sender
+        foreach(ClientInfo c in m_clients)
+        {
+            if (c == client) continue;
+
+            SendPacketToOne(EPacketType.CHAT_MESSAGE, chat_message, c.stream);
+        }
+    }
+
     private void InterpretPacket(Packet toInterpret, ClientInfo client)
     {
         switch (toInterpret.header.type)
@@ -198,6 +212,9 @@ public class Host : NetworkUser
                 break;
             case EPacketType.VERIFICATION:
                 ExecuteVerification(toInterpret, client);
+                break;
+            case EPacketType.CHAT_MESSAGE:
+                ExecuteHostChatMessage(toInterpret, client);
                 break;
             default:
                 base.InterpretPacket(toInterpret);

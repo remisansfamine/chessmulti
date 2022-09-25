@@ -31,29 +31,14 @@ public class Player : MonoBehaviour
                 host.SendPacket(EPacketType.TEAM_SWITCH, otherTeam);
 
                 host.SendNetMessage("StartGame");
-
-                //while (!host.AreClientVerified())
-                //{
-                //}
-                //VerifyPlayers(host);
             }
             else
             {
                 ChessGameMgr.Instance.EnableAI(true);
-                InitGame();
             }
         }
-        else
-        {
-            //UserInfo info = new UserInfo();
 
-            //info.pseudo = networkUser.name;
-            //info.state = EUserState.SPECTATOR;
-
-           //networkUser.SendPacket(EPacketType.VERIFICATION, networkUser.name);
-
-            InitGame();
-        }
+        InitGame();
     }
 
     private void InitGame()

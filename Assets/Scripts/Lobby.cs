@@ -89,6 +89,8 @@ public class Lobby : MonoBehaviour
     {
         Client client = m_player.SetNetworkState<Client>();
 
+        client.pseudo = m_pseudonymText.text;
+
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);
 
@@ -117,6 +119,8 @@ public class Lobby : MonoBehaviour
     public void OnSpectateJoin()
     {
         Spectator spec = m_player.SetNetworkState<Spectator>();
+
+        spec.pseudo = m_pseudonymText.text;
 
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);

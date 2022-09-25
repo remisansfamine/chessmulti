@@ -34,6 +34,7 @@ public partial class ChessGameMgr : MonoBehaviour
     private static int BOARD_SIZE = 8;
     private int pieceLayerMask;
     private int boardLayerMask;
+    private bool isPlaying = false;
 
     [SerializeField] private GameObject endScreen = null;
     [SerializeField] private TMP_Text winField = null;
@@ -247,6 +248,8 @@ public partial class ChessGameMgr : MonoBehaviour
         if (OnScoreUpdated != null)
             OnScoreUpdated(scores[0], scores[1]);
 
+        isPlaying = false;
+
         if (endScreen)
         {
             endScreen.SetActive(true);
@@ -259,6 +262,8 @@ public partial class ChessGameMgr : MonoBehaviour
         teamTurn = EChessTeam.White;
 
         m_player.networkUser.SendNetMessage("ResetGame");
+
+        isPlaying = true;
 
         endScreen?.SetActive(false);
 
@@ -280,6 +285,7 @@ public partial class ChessGameMgr : MonoBehaviour
         }
 
         EChessTeam otherTeam = (teamTurn == EChessTeam.White) ? EChessTeam.Black : EChessTeam.White;
+
         if (boardState.DoesTeamLose(otherTeam))
         {
             EndGame();
@@ -343,6 +349,11 @@ public partial class ChessGameMgr : MonoBehaviour
         return xPos + zPos * BOARD_SIZE;
     }
 
+    public void StartGame()
+    {
+        teamTurn = EChessTeam.White;
+        isPlaying = true;
+    }
     #endregion
 
     #region MonoBehaviour
@@ -377,6 +388,8 @@ public partial class ChessGameMgr : MonoBehaviour
 
     void Update()
     {
+        if (!isPlaying) return;
+
         // human player always plays white
         if (teamTurn == team)
             UpdatePlayerTurn();

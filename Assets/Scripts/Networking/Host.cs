@@ -73,13 +73,20 @@ public class Host : NetworkUser
                 if (client.stream != null)
                     m_clients.Add(client);
             }
+            catch (IOException e)
+            {
+                Debug.LogError("Server seems stopped " + e);
+            }
             catch (Exception e)
             {
                 Debug.LogError("Server seems stopped " + e);
             }
             finally
             {
-                ListeClientPackets(m_clients[m_clients.Count-1]);
+                if (m_clients.Count > 0)
+                {
+                    ListeClientPackets(m_clients[m_clients.Count - 1]);
+                }
             }
         }
     }

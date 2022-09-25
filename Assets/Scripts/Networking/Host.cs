@@ -260,7 +260,7 @@ public class Host : NetworkUser
         }
         catch (Exception e)
         {
-            Debug.LogError("Error during server closing " + e);
+            //Debug.LogError("Error during server closing " + e);
         }
         finally
         {

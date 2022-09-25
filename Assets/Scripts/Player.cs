@@ -10,7 +10,7 @@ public class Player : MonoBehaviour
     public NetworkUser networkUser = null;
 
     public UnityEvent OnGameStartEvent = new UnityEvent();
-    public UnityEvent OnGamePausedEvent = new UnityEvent();
+    public UnityEvent OnGamePausedOnlineEvent = new UnityEvent();
     public UnityEvent OnGameResumedEvent = new UnityEvent();
     public UnityEvent OnGameLeaveEvent = new UnityEvent();
 
@@ -56,7 +56,7 @@ public class Player : MonoBehaviour
         return networkUser as T;
     }
 
-    private void OnPause() => OnGamePausedEvent.Invoke();
+    private void OnPause() => OnGamePausedOnlineEvent.Invoke();
     private void OnResume() => OnGameResumedEvent.Invoke();
     private void OnDisconnected() => OnGameLeaveEvent.Invoke();
 }

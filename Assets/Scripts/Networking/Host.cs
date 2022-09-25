@@ -14,12 +14,6 @@ public enum EUserState
     SPECTATOR
 }
 
-public class UserInfo
-{
-    public EUserState state = EUserState.SPECTATOR;
-    public string pseudo = "player";
-}
-
 public class Host : NetworkUser
 {
     private class ClientInfo
@@ -28,14 +22,13 @@ public class Host : NetworkUser
         public TcpClient tcp;
 
         public bool verified = false;
-        public string pseudo;
     }
 
     #region Variables
 
     TcpListener server = null;
 
-    Dictionary<ClientInfo, string> clientsDatas = new Dictionary<ClientInfo, string>();
+    Dictionary<ClientInfo, string> clientNames = new Dictionary<ClientInfo, string>();
 
     private List<ClientInfo> m_clients = new List<ClientInfo>();
 
@@ -187,8 +180,10 @@ public class Host : NetworkUser
 
     private void ExecuteVerification(Packet toExecute, ClientInfo client)
     {
-        clientsDatas.Add(client, toExecute.FillObject<string>());
+        string pseudo = toExecute.FillObject<string>();
+        clientNames.Add(client, pseudo);
 
+        Debug.Log(pseudo + " Joined");
         client.verified = true;
     }
 
@@ -224,7 +219,7 @@ public class Host : NetworkUser
 
     private void OnClientDisconnection(ClientInfo client)
     {
-        clientsDatas.Remove(client);
+        clientNames.Remove(client);
 
         m_clients.Remove(client);
 
@@ -262,16 +257,6 @@ public class Host : NetworkUser
 
     public bool HasPlayer()
     {
-        //if (!HasClients()) return false;
-
-        /*foreach(UserInfo info in clientsDatas.Values)
-        {
-            if(info.state == EUserState.PLAYER)
-            {
-                return true;
-            }
-        }*/
-
         return currentOpponent != -1;
     }
 
@@ -294,10 +279,11 @@ public class Host : NetworkUser
     {
         List<string> pseudos = new List<string>();
 
-        foreach (ClientInfo client in m_clients)
+        foreach (string name in clientNames.Values)
         {
-            pseudos.Add(client.pseudo);
+            pseudos.Add(name);
         }
+
         return pseudos;
     }
 

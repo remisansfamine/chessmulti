@@ -90,8 +90,6 @@ public class Lobby : MonoBehaviour
     {
         Client client = m_player.SetNetworkState<Client>();
 
-        client.isPlayer = true;
-
         client.pseudo = m_pseudonymText.text;
 
         string IP = m_inputClientIP.text;

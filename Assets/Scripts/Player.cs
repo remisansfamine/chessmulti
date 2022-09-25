@@ -33,9 +33,9 @@ public class Player : MonoBehaviour
                 host.SendNetMessage("StartGame");
 
                 //while (!host.AreClientVerified())
-                {
-                }
-                VerifyPlayers(host);
+                //{
+                //}
+                //VerifyPlayers(host);
             }
             else
             {
@@ -45,12 +45,12 @@ public class Player : MonoBehaviour
         }
         else
         {
-            UserInfo info = new UserInfo();
+            //UserInfo info = new UserInfo();
 
-            info.pseudo = networkUser.name;
-            info.state = EUserState.SPECTATOR;
+            //info.pseudo = networkUser.name;
+            //info.state = EUserState.SPECTATOR;
 
-            networkUser.SendPacket(EPacketType.VERIFICATION, networkUser.name);
+           //networkUser.SendPacket(EPacketType.VERIFICATION, networkUser.name);
 
             InitGame();
         }
@@ -65,7 +65,7 @@ public class Player : MonoBehaviour
         ChessGameMgr.Instance.StartGame();
     }
 
-    async void VerifyPlayers(Host host)
+    /*async void VerifyPlayers(Host host)
     {
         await System.Threading.Tasks.Task.Delay(500);
 
@@ -77,7 +77,7 @@ public class Player : MonoBehaviour
             ChessGameMgr.Instance.EnableAI(true);
         }
         InitGame();
-    }
+    }*/
 
 
     public T SetNetworkState<T>() where T : NetworkUser

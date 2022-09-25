@@ -80,7 +80,7 @@ public class Client : NetworkUser
         }
         finally
         {
-            SendPacket(EPacketType.VERIFICATION, name);
+            SendPacket(EPacketType.VERIFICATION, pseudo);
         }
     }
 

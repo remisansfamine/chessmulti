@@ -10,6 +10,12 @@ using UnityEngine.Events;
 
 public class Host : NetworkUser
 {
+    private class ClientInfo
+    {
+        public NetworkStream stream;
+        public TcpClient wrapper;
+    }
+
     #region Variables
 
     TcpListener server = null;
@@ -17,7 +23,11 @@ public class Host : NetworkUser
 
     Dictionary<NetworkStream, ChessGameMgr.EChessTeam> clientsDatas = new Dictionary<NetworkStream, ChessGameMgr.EChessTeam>();
 
-    protected List<NetworkStream> m_clientStreams = new List<NetworkStream>();
+    //private List<NetworkStream> m_clientStreams = new List<NetworkStream>();
+    //protected List<TcpClient> m_clients = new List<TcpClient>();
+    private List<ClientInfo> m_clients = new List<ClientInfo>();
+
+    [SerializeField] private uint maxClients = 5;
 
     #endregion
 
@@ -40,34 +50,34 @@ public class Host : NetworkUser
 
     public override void SendPacket(EPacketType type, object toSend)
     {
-        foreach(NetworkStream stream in m_clientStreams)
-        {
-            stream?.Write(Packet.SerializePacket(type, toSend));
-        }
-    }
+        byte[] serializedObject = Packet.SerializePacket(type, toSend);
 
+        foreach(ClientInfo client in m_clients)
+            client.stream?.Write(serializedObject);
+    }
 
     public async void WaitPlayer()
     {
-        try
+        for (uint i = 0; i < maxClients; i++)
         {
-            connectedClient = await server.AcceptTcpClientAsync();
-
-            NetworkStream newStream = connectedClient.GetStream();
-            m_clientStreams.Add(newStream);
-
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Server seems stopped " + e);
-        }
-        finally
-        {
-            if (!HasPlayer()) ChessGameMgr.Instance.EnableAI(false);
-
-            foreach(NetworkStream stream in m_clientStreams)
+            try
             {
-                ListeClientPackets(stream);
+                ClientInfo client = new ClientInfo();
+
+                client.wrapper = await server.AcceptTcpClientAsync();
+                client.stream = connectedClient.GetStream();
+
+                if (client.stream != null)
+                    m_clients.Add(client);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Server seems stopped " + e);
+            }
+            finally
+            {
+                foreach (ClientInfo client in m_clients)
+                    ListeClientPackets(client);
             }
         }
     }
@@ -93,9 +103,9 @@ public class Host : NetworkUser
         WaitPlayer();
     }
 
-    public async void ListeClientPackets(NetworkStream stream)
+    private async void ListeClientPackets(ClientInfo client)
     {
-        while (stream != null)
+        while (client != null)
         {
             int headerSize = Packet.PacketSize();
 
@@ -103,23 +113,23 @@ public class Host : NetworkUser
 
             try
             {
-                await stream.ReadAsync(headerBytes);
+                await client.stream.ReadAsync(headerBytes);
 
                 Packet packet = Packet.DeserializeHeader(headerBytes);
 
                 packet.datas = new byte[packet.header.size];
-                await stream.ReadAsync(packet.datas);
+                await client.stream.ReadAsync(packet.datas);
 
                 InterpretPacket(packet);
             }
             catch (IOException ioe)
             {
-                ListenPacketCatch(ioe, stream);
+                ListenPacketCatch(ioe, client);
                 return;
             }
             catch (Exception e)
             {
-                ListenPacketCatch(e, stream);
+                ListenPacketCatch(e, client);
                 return;
             }
         }
@@ -157,40 +167,37 @@ public class Host : NetworkUser
     }
 
 
-    protected void ListenPacketCatch(IOException ioe, NetworkStream stream)
+    private void ListenPacketCatch(IOException ioe, ClientInfo client)
     {
-        OnClientDisconnection(stream);
+        OnClientDisconnection(client);
     }
 
-    protected void ListenPacketCatch(Exception e, NetworkStream stream)
+    private void ListenPacketCatch(Exception e, ClientInfo client)
     {
-        OnClientDisconnection(stream);
+        OnClientDisconnection(client);
     }
 
 
-    private void OnClientDisconnection(NetworkStream stream)
+    private void OnClientDisconnection(ClientInfo client)
     {
-        if(clientsDatas[stream] != ChessGameMgr.EChessTeam.None)
+        clientsDatas.Remove(client.stream);
+
+        m_clients.Remove(client);
+
+        if (!HasPlayer())
         {
             ChessGameMgr.Instance.EnableAI(true);
         }
-
-        clientsDatas.Remove(stream);
-
-        stream?.Close();
-
-        m_clientStreams.Remove(stream);
-
-        ChessGameMgr.Instance.EnableAI(true);
     }
 
     public new void Disconnect()
     {
         try
         {
-            foreach (NetworkStream stream in m_clientStreams) stream?.Close();
+            foreach (ClientInfo client in m_clients)
+                client.wrapper?.Close();
 
-            m_clientStreams.Clear();
+            m_clients.Clear();
 
             connectedClient?.Close();
 
@@ -206,8 +213,15 @@ public class Host : NetworkUser
         }
     }
 
+    public bool HasClients()
+    {
+        return m_clients.Count > 0;
+    }
+
     public bool HasPlayer()
     {
+        if (!HasClients()) return false;
+
         foreach(var element in clientsDatas)
         {
             if(element.Value == ChessGameMgr.EChessTeam.White ||

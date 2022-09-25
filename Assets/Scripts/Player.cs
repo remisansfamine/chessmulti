@@ -24,12 +24,22 @@ public class Player : MonoBehaviour
 
             ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
 
-            host.SendPacket(EPacketType.TEAM_SWITCH, ChessGameMgr.EChessTeam.Black);
 
-            host.SendNetMessage("StartGame");
+            if (!host.HasClients())
+            {
+                ChessGameMgr.Instance.EnableAI(true);
+            }
+            else
+            {
+                host.SendPacket(EPacketType.TEAM_SWITCH, ChessGameMgr.EChessTeam.Black);
+
+                host.SendNetMessage("StartGame");
+            }
         }
-
-        networkUser.SendPacket(EPacketType.TEAM_INFO, ChessGameMgr.Instance.team);
+        else
+        {
+            networkUser.SendPacket(EPacketType.TEAM_INFO, ChessGameMgr.Instance.team);
+        }
 
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);
 

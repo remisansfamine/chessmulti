@@ -21,10 +21,6 @@ public class Client : NetworkUser
 
     #region MonoBehaviour
 
-    private void OnDestroy()
-    {
-        Disconnect();
-    }
 
     #endregion
 
@@ -157,6 +153,8 @@ public class Client : NetworkUser
         {
             Debug.LogError("Error during server disconnection " + e);
         }
+
+        Destroy(this);
     }
 
     #endregion

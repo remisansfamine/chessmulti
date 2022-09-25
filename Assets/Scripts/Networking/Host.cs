@@ -40,10 +40,6 @@ public class Host : NetworkUser
 
     #region MonoBehaviour
 
-    private void OnDestroy()
-    {
-        Disconnect();
-    }
 
     #endregion
 
@@ -236,7 +232,7 @@ public class Host : NetworkUser
 
     private void OnClientDisconnection(ClientInfo client)
     {
-        if(currentOpponent != -1 && m_clients[currentOpponent] == client)
+        if(currentOpponent != -1 && currentOpponent < m_clients.Count && m_clients[currentOpponent] == client)
         {
             currentOpponent = -1;
             ChessGameMgr.Instance.EnableAI(true);
@@ -266,6 +262,8 @@ public class Host : NetworkUser
         {
             server.Stop();
         }
+
+        Destroy(this);
     }
 
     public bool HasClients()

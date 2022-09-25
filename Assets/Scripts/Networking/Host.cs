@@ -8,19 +8,28 @@ using System.Net.Sockets;
 using UnityEngine.Events;
 
 
+public enum EUserState
+{
+    PLAYER,
+    SPECTATOR
+}
+
 public class Host : NetworkUser
 {
     private class ClientInfo
     {
+
         public NetworkStream stream;
         public TcpClient tcp;
+
+        public bool verified = false;
     }
 
     #region Variables
 
     TcpListener server = null;
 
-    Dictionary<NetworkStream, ChessGameMgr.EChessTeam> clientsDatas = new Dictionary<NetworkStream, ChessGameMgr.EChessTeam>();
+    Dictionary<NetworkStream, EUserState> clientsDatas = new Dictionary<NetworkStream, EUserState>();
 
     private List<ClientInfo> m_clients = new List<ClientInfo>();
 
@@ -85,11 +94,11 @@ public class Host : NetworkUser
             }
             catch (IOException e)
             {
-                return;
+                break;
             }
             catch (Exception e)
             {
-                return;
+                break;
             }
             finally
             {
@@ -139,7 +148,7 @@ public class Host : NetworkUser
                 packet.datas = new byte[packet.header.size];
                 await client.stream.ReadAsync(packet.datas);
 
-                InterpretPacket(packet, client.stream);
+                InterpretPacket(packet, client);
             }
             catch (IOException ioe)
             {
@@ -161,12 +170,21 @@ public class Host : NetworkUser
         ChessGameMgr.Instance.CheckMove(move);
     }
 
-    protected void ExecuteTeamInfo(Packet toExecute, NetworkStream stream)
+    private void ExecuteVerification(Packet toExecute, ClientInfo client)
     {
-        clientsDatas.Add(stream, toExecute.FillObject<ChessGameMgr.EChessTeam>());
+        if(clientsDatas.ContainsValue(EUserState.PLAYER))
+        {
+            clientsDatas.Add(client.stream, EUserState.SPECTATOR);
+        }
+        else
+        {
+            clientsDatas.Add(client.stream, toExecute.FillObject<EUserState>());
+        }
+
+        client.verified = true;
     }
 
-    protected void InterpretPacket(Packet toInterpret, NetworkStream stream)
+    private void InterpretPacket(Packet toInterpret, ClientInfo client)
     {
         switch (toInterpret.header.type)
         {
@@ -175,9 +193,8 @@ public class Host : NetworkUser
                 break;
             case EPacketType.MOVE_VALIDITY:
                 break;
-
-            case EPacketType.TEAM_INFO:
-                ExecuteTeamInfo(toInterpret, stream);
+            case EPacketType.VERIFICATION:
+                ExecuteVerification(toInterpret, client);
                 break;
             default:
                 base.InterpretPacket(toInterpret);
@@ -241,8 +258,7 @@ public class Host : NetworkUser
 
         foreach(var element in clientsDatas)
         {
-            if(element.Value == ChessGameMgr.EChessTeam.White ||
-               element.Value == ChessGameMgr.EChessTeam.Black)
+            if(element.Value == EUserState.PLAYER)
             {
                 return true;
             }
@@ -251,5 +267,18 @@ public class Host : NetworkUser
         return false;
     }
 
+    public bool AreClientVerified()
+    {
+        if (!HasClients()) return true;
+
+        bool verify = true;
+
+        foreach (var element in m_clients)
+        {
+            verify &= element.verified;
+        }
+
+        return verify;
+    }
     #endregion
 }

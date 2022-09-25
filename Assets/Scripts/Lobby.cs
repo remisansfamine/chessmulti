@@ -89,6 +89,8 @@ public class Lobby : MonoBehaviour
     {
         Client client = m_player.SetNetworkState<Client>();
 
+        client.isPlayer = true;
+
         client.pseudo = m_pseudonymText.text;
 
         string IP = m_inputClientIP.text;
@@ -118,9 +120,8 @@ public class Lobby : MonoBehaviour
 
     public void OnSpectateJoin()
     {
-        Spectator spec = m_player.SetNetworkState<Spectator>();
-
-        spec.pseudo = m_pseudonymText.text;
+        Client client = m_player.SetNetworkState<Client>();
+        client.pseudo = m_pseudonymText.text;
 
         string IP = m_inputClientIP.text;
         int port = int.Parse(m_inputClientPort.text);
@@ -130,7 +131,7 @@ public class Lobby : MonoBehaviour
         //  DO join 
         try
         {
-            spec.Join(IP, port);
+            client.Join(IP, port);
         }
         catch
         {

@@ -26,20 +26,26 @@ public class Player : MonoBehaviour
 
             host.acceptClients = false;
 
-            if (!host.HasClients())
-            {
-                ChessGameMgr.Instance.EnableAI(true);
-            }
-            else
+            if (host.HasClients())
             {
                 host.SendPacket(EPacketType.TEAM_SWITCH, ChessGameMgr.EChessTeam.Black);
 
                 host.SendNetMessage("StartGame");
+
+                while (!host.AreClientVerified())
+                {
+
+                }
+            }
+
+            if (!host.HasPlayer())
+            {
+                ChessGameMgr.Instance.EnableAI(true);
             }
         }
         else
         {
-            networkUser.SendPacket(EPacketType.TEAM_INFO, ChessGameMgr.Instance.team);
+            networkUser.SendPacket(EPacketType.VERIFICATION, EUserState.SPECTATOR);
         }
 
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);

@@ -15,6 +15,8 @@ public class Client : NetworkUser
 
     protected NetworkStream m_stream = null;
 
+    public bool isPlayer;
+
     #endregion
 
     #region MonoBehaviour
@@ -101,6 +103,17 @@ public class Client : NetworkUser
                 break;
             case EPacketType.MOVE_VALIDITY:
                 ExecuteValidity(toInterpret);
+                break;
+            case EPacketType.TEAM_SWITCH:
+                if (isPlayer) 
+                    ExecuteTeam(toInterpret);
+                else
+                    ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.None;
+                break;
+
+            case EPacketType.SPECTATORS_MOVEMENTS:
+                if (isPlayer) break;
+                ExecuteMovement(toInterpret); 
                 break;
 
             default:

@@ -219,14 +219,15 @@ public class Host : NetworkUser
 
     private void OnClientDisconnection(ClientInfo client)
     {
+        if(currentOpponent != -1 && m_clients[currentOpponent] == client)
+        {
+            currentOpponent = -1;
+            ChessGameMgr.Instance.EnableAI(true);
+        }
+
         clientNames.Remove(client);
 
         m_clients.Remove(client);
-
-        if (!HasPlayer())
-        {
-            ChessGameMgr.Instance.EnableAI(true);
-        }
     }
 
     public new void Disconnect()

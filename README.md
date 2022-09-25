@@ -11,8 +11,11 @@ The goal of the project is to create a local network multiplayer mode for a give
 ## Preview
 <div style="text-align:center">
 
-![Preview](Annexe/Preview.gif)
+![Host](media/ChessHost.gif)
+**Host view**
 
+![Client](media/ChessClient.gif)
+**Client view**
 </div>
 
 # How to launch

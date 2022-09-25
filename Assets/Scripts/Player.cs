@@ -22,36 +22,63 @@ public class Player : MonoBehaviour
         {
             Host host = networkUser as Host;
 
-            ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
+            ChessGameMgr.EChessTeam otherTeam = (ChessGameMgr.Instance.team == ChessGameMgr.EChessTeam.White) ? ChessGameMgr.EChessTeam.Black : ChessGameMgr.EChessTeam.White;
 
             host.acceptClients = false;
 
             if (host.HasClients())
             {
-                host.SendPacket(EPacketType.TEAM_SWITCH, ChessGameMgr.EChessTeam.Black);
+                host.SendPacket(EPacketType.TEAM_SWITCH, otherTeam);
 
                 host.SendNetMessage("StartGame");
 
-                while (!host.AreClientVerified())
+                //while (!host.AreClientVerified())
                 {
-
                 }
+                VerifyPlayers(host);
             }
-
-            if (!host.HasPlayer())
+            else
             {
                 ChessGameMgr.Instance.EnableAI(true);
+                InitGame();
             }
         }
         else
         {
-            networkUser.SendPacket(EPacketType.VERIFICATION, EUserState.SPECTATOR);
-        }
+            UserInfo info = new UserInfo();
 
+            info.pseudo = networkUser.name;
+            info.state = EUserState.SPECTATOR;
+
+            networkUser.SendPacket(EPacketType.VERIFICATION, networkUser.name);
+
+            InitGame();
+        }
+    }
+
+    private void InitGame()
+    {
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);
 
         OnGameStartEvent.Invoke();
+
+        ChessGameMgr.Instance.StartGame();
     }
+
+    async void VerifyPlayers(Host host)
+    {
+        await System.Threading.Tasks.Task.Delay(500);
+
+        while(!host.AreClientVerified());
+
+
+        if (!host.HasPlayer())
+        {
+            ChessGameMgr.Instance.EnableAI(true);
+        }
+        InitGame();
+    }
+
 
     public T SetNetworkState<T>() where T : NetworkUser
     {

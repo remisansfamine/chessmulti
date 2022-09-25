@@ -14,27 +14,34 @@ public enum EUserState
     SPECTATOR
 }
 
+public class UserInfo
+{
+    public EUserState state = EUserState.SPECTATOR;
+    public string pseudo = "player";
+}
+
 public class Host : NetworkUser
 {
     private class ClientInfo
     {
-
         public NetworkStream stream;
         public TcpClient tcp;
 
         public bool verified = false;
+        public string pseudo;
     }
 
     #region Variables
 
     TcpListener server = null;
 
-    Dictionary<NetworkStream, EUserState> clientsDatas = new Dictionary<NetworkStream, EUserState>();
+    Dictionary<ClientInfo, string> clientsDatas = new Dictionary<ClientInfo, string>();
 
     private List<ClientInfo> m_clients = new List<ClientInfo>();
 
     [SerializeField] private uint maxClients = 5;
     public bool acceptClients;
+    private int currentOpponent = -1;
 
     #endregion
 
@@ -62,6 +69,12 @@ public class Host : NetworkUser
         foreach(ClientInfo client in m_clients)
             client.stream?.Write(serializedObject);
     }
+    public void SendPacketToOne(EPacketType type, object toSend, NetworkStream stream)
+    {
+        byte[] serializedObject = Packet.SerializePacket(type, toSend);
+
+        stream?.Write(serializedObject);
+    }
 
     public async void WaitPlayer()
     {
@@ -69,6 +82,7 @@ public class Host : NetworkUser
 
         for (uint i = 0; i < maxClients && acceptClients; i++)
         {
+            bool added = false;
             try
             {
                 ClientInfo client = new ClientInfo();
@@ -85,6 +99,7 @@ public class Host : NetworkUser
 
                 if (client.stream != null)
                 {
+                    added = true;
                     m_clients.Add(client);
                 }
                 else
@@ -102,7 +117,7 @@ public class Host : NetworkUser
             }
             finally
             {
-                if (m_clients.Count > 0)
+                if (added && m_clients.Count > 0)
                 {
                     ListeClientPackets(m_clients[m_clients.Count - 1]);
                 }
@@ -172,14 +187,7 @@ public class Host : NetworkUser
 
     private void ExecuteVerification(Packet toExecute, ClientInfo client)
     {
-        if(clientsDatas.ContainsValue(EUserState.PLAYER))
-        {
-            clientsDatas.Add(client.stream, EUserState.SPECTATOR);
-        }
-        else
-        {
-            clientsDatas.Add(client.stream, toExecute.FillObject<EUserState>());
-        }
+        clientsDatas.Add(client, toExecute.FillObject<string>());
 
         client.verified = true;
     }
@@ -216,7 +224,7 @@ public class Host : NetworkUser
 
     private void OnClientDisconnection(ClientInfo client)
     {
-        clientsDatas.Remove(client.stream);
+        clientsDatas.Remove(client);
 
         m_clients.Remove(client);
 
@@ -254,17 +262,17 @@ public class Host : NetworkUser
 
     public bool HasPlayer()
     {
-        if (!HasClients()) return false;
+        //if (!HasClients()) return false;
 
-        foreach(var element in clientsDatas)
+        /*foreach(UserInfo info in clientsDatas.Values)
         {
-            if(element.Value == EUserState.PLAYER)
+            if(info.state == EUserState.PLAYER)
             {
                 return true;
             }
-        }
+        }*/
 
-        return false;
+        return currentOpponent != -1;
     }
 
     public bool AreClientVerified()
@@ -280,5 +288,42 @@ public class Host : NetworkUser
 
         return verify;
     }
+
+
+    public List<string> GetClientPseudo()
+    {
+        List<string> pseudos = new List<string>();
+
+        foreach (ClientInfo client in m_clients)
+        {
+            pseudos.Add(client.pseudo);
+        }
+        return pseudos;
+    }
+
+    public void SetOpponentInClients(int index)
+    {
+        if (index == currentOpponent) return;
+
+        if(currentOpponent >= 0)
+        {
+            SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.SPECTATOR, m_clients[currentOpponent].stream);
+
+            if(index >= 0) SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.PLAYER, m_clients[index].stream);
+
+            else ChessGameMgr.Instance.EnableAI(true);
+        }
+        else // Is cuurently AI
+        {
+            if (index >= 0)
+            {
+                ChessGameMgr.Instance.EnableAI(false);
+
+                SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.PLAYER, m_clients[index].stream);
+            }
+        }
+        currentOpponent = index;
+    }
+
     #endregion
 }

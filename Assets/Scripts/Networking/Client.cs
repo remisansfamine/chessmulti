@@ -78,6 +78,10 @@ public class Client : NetworkUser
         {
             Debug.LogError("Error during server connection " + e);
         }
+        finally
+        {
+            SendPacket(EPacketType.VERIFICATION, name);
+        }
     }
 
     protected override void ExecuteMovement(Packet toExecute)
@@ -93,6 +97,12 @@ public class Client : NetworkUser
         
         else ChessGameMgr.Instance.ResetMove();
     }
+    protected void ExecuteStateSwitch(Packet toExecute)
+    {
+        if (toExecute.FillObject<EUserState>() == EUserState.PLAYER) isPlayer = true;
+        else isPlayer = false;
+    }
+
 
     protected override void InterpretPacket(Packet toInterpret)
     {
@@ -110,12 +120,13 @@ public class Client : NetworkUser
                 else
                     ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.None;
                 break;
-
             case EPacketType.SPECTATORS_MOVEMENTS:
                 if (isPlayer) break;
                 ExecuteMovement(toInterpret); 
                 break;
-
+            case EPacketType.STATE_SWITCH:
+                ExecuteStateSwitch(toInterpret);
+                break;
             default:
                 base.InterpretPacket(toInterpret);
                 break;

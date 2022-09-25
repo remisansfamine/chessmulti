@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
 
 // 10.2.102.127
 
@@ -9,8 +10,8 @@ public class Lobby : MonoBehaviour
     [SerializeField] private TMP_InputField m_inputClientPort;
     [SerializeField] private TMP_InputField m_inputHostPort;
     [SerializeField] private TMP_InputField m_pseudonymText;
-    [SerializeField] private TMP_Text       m_playersText;
     [SerializeField] private TMP_Text       m_joinInfoText;
+    [SerializeField] private TMP_Dropdown   m_opponentDropdown;
     [SerializeField] private Player  m_player;
 
     private void Awake()
@@ -34,7 +35,7 @@ public class Lobby : MonoBehaviour
 
     private void Update()
     {
-            
+        UpdateDropdown();
     }
 
     public void OnOtherPlayerDisconnection()
@@ -118,7 +119,7 @@ public class Lobby : MonoBehaviour
         }
     }
 
-    public void OnSpectateJoin()
+    /*public void OnSpectateJoin()
     {
         Client client = m_player.SetNetworkState<Client>();
         client.pseudo = m_pseudonymText.text;
@@ -146,7 +147,7 @@ public class Lobby : MonoBehaviour
 
             ChangeText(m_joinInfoText, "Successfully connected to " + m_inputClientIP.text + ":" + m_inputClientPort.text, new Color(0.50f, 1.0f, 0.50f));
         }
-    }
+    }*/
 
     public void OnClientUnjoin()
     {
@@ -158,5 +159,36 @@ public class Lobby : MonoBehaviour
     {
         textUi.text = text;
         textUi.color = color;
+    }
+
+    public void OnSwitchTeam(int team)
+    {
+        if (team == 0) ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
+        if (team == 1) ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.Black;
+    }
+
+    public void OnOpponentSwitch(int index)
+    {
+        Host host = m_player.networkUser as Host;
+
+        host.SetOpponentInClients(index - 1);
+    }
+
+
+    public void UpdateDropdown()
+    {
+        if (m_opponentDropdown.IsActive())
+        {
+            Host host = m_player.networkUser as Host;
+
+            if (!host) return;
+
+            m_opponentDropdown.ClearOptions();
+
+            List<string> options = host.GetClientPseudo();
+            options.Insert(0, "AI");
+
+            m_opponentDropdown.AddOptions(options);
+        }
     }
 }

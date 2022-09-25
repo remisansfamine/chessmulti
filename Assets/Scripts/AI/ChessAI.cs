@@ -25,6 +25,8 @@ public class ChessAI : MonoBehaviour
 
     public ChessGameMgr.Move ComputeMove()
     {
+        ChessGameMgr.EChessTeam otherTeam = (ChessGameMgr.Instance.team == ChessGameMgr.EChessTeam.White) ? ChessGameMgr.EChessTeam.Black : ChessGameMgr.EChessTeam.White;
+
         // random AI move
 
         ChessGameMgr.Move move;
@@ -32,7 +34,7 @@ public class ChessAI : MonoBehaviour
         move.To = 1;
 
         List<ChessGameMgr.Move> moves = new List<ChessGameMgr.Move>(); ;
-        ChessGameMgr.Instance.GetBoardState().GetValidMoves(ChessGameMgr.EChessTeam.Black, moves);
+        ChessGameMgr.Instance.GetBoardState().GetValidMoves(otherTeam, moves);
 
         if (moves.Count > 0)
             move = moves[Random.Range(0, moves.Count - 1)];

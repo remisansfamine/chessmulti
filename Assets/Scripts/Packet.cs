@@ -11,6 +11,7 @@ public enum EPacketType
 {
     UNDEFINED,
     MOVEMENTS,
+    SPECTATORS_MOVEMENTS,
     MOVE_VALIDITY,
     UNITY_MESSAGE,
     CHAT_MESSAGE,

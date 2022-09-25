@@ -13,13 +13,12 @@ public class Host : NetworkUser
     private class ClientInfo
     {
         public NetworkStream stream;
-        public TcpClient wrapper;
+        public TcpClient tcp;
     }
 
     #region Variables
 
     TcpListener server = null;
-    TcpClient connectedClient = null;
 
     Dictionary<NetworkStream, ChessGameMgr.EChessTeam> clientsDatas = new Dictionary<NetworkStream, ChessGameMgr.EChessTeam>();
 
@@ -28,6 +27,7 @@ public class Host : NetworkUser
     private List<ClientInfo> m_clients = new List<ClientInfo>();
 
     [SerializeField] private uint maxClients = 5;
+    public bool acceptClients;
 
     #endregion
 
@@ -58,14 +58,17 @@ public class Host : NetworkUser
 
     public async void WaitPlayer()
     {
-        for (uint i = 0; i < maxClients; i++)
+        acceptClients = true;
+
+        for (uint i = 0; i < maxClients && acceptClients; i++)
         {
             try
             {
                 ClientInfo client = new ClientInfo();
 
-                client.wrapper = await server.AcceptTcpClientAsync();
-                client.stream = connectedClient.GetStream();
+                client.tcp = await server.AcceptTcpClientAsync();
+
+                client.stream = client.tcp?.GetStream();
 
                 if (client.stream != null)
                     m_clients.Add(client);
@@ -76,8 +79,7 @@ public class Host : NetworkUser
             }
             finally
             {
-                foreach (ClientInfo client in m_clients)
-                    ListeClientPackets(client);
+                ListeClientPackets(m_clients[m_clients.Count-1]);
             }
         }
     }
@@ -120,7 +122,7 @@ public class Host : NetworkUser
                 packet.datas = new byte[packet.header.size];
                 await client.stream.ReadAsync(packet.datas);
 
-                InterpretPacket(packet);
+                InterpretPacket(packet, client.stream);
             }
             catch (IOException ioe)
             {
@@ -195,11 +197,9 @@ public class Host : NetworkUser
         try
         {
             foreach (ClientInfo client in m_clients)
-                client.wrapper?.Close();
+                client.tcp?.Close();
 
             m_clients.Clear();
-
-            connectedClient?.Close();
 
             base.Disconnect();
         }

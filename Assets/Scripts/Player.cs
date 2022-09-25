@@ -24,6 +24,7 @@ public class Player : MonoBehaviour
 
             ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
 
+            host.acceptClients = false;
 
             if (!host.HasClients())
             {

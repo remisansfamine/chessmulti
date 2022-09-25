@@ -22,8 +22,6 @@ public class Host : NetworkUser
 
     Dictionary<NetworkStream, ChessGameMgr.EChessTeam> clientsDatas = new Dictionary<NetworkStream, ChessGameMgr.EChessTeam>();
 
-    //private List<NetworkStream> m_clientStreams = new List<NetworkStream>();
-    //protected List<TcpClient> m_clients = new List<TcpClient>();
     private List<ClientInfo> m_clients = new List<ClientInfo>();
 
     [SerializeField] private uint maxClients = 5;
@@ -68,10 +66,22 @@ public class Host : NetworkUser
 
                 client.tcp = await server.AcceptTcpClientAsync();
 
+                if (!acceptClients)
+                {
+                    client.tcp.Close();
+                    break;
+                }
+
                 client.stream = client.tcp?.GetStream();
 
                 if (client.stream != null)
+                {
                     m_clients.Add(client);
+                }
+                else
+                {
+                    client.tcp.Close();
+                }
             }
             catch (IOException e)
             {

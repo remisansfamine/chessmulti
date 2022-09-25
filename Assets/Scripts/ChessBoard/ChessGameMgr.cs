@@ -257,6 +257,16 @@ public partial class ChessGameMgr : MonoBehaviour
         }
     }
 
+    public void ResetBoard()
+    {
+        PrepareGame(false);
+        // remove extra piece instances if pawn promotions occured
+        teamPiecesArray[0].ClearPromotedPieces();
+        teamPiecesArray[1].ClearPromotedPieces();
+
+        UpdatePieces();
+    }
+
     public void ResetGame()
     {
         teamTurn = EChessTeam.White;
@@ -267,12 +277,7 @@ public partial class ChessGameMgr : MonoBehaviour
 
         endScreen?.SetActive(false);
 
-        PrepareGame(false);
-        // remove extra piece instances if pawn promotions occured
-        teamPiecesArray[0].ClearPromotedPieces();
-        teamPiecesArray[1].ClearPromotedPieces();
-
-        UpdatePieces();
+        ResetBoard();
     }
 
     public void UpdateTurn(Move move)

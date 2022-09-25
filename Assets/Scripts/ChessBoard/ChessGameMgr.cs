@@ -190,6 +190,8 @@ public partial class ChessGameMgr : MonoBehaviour
         UpdateTurn(move);
 
         m_player.networkUser.SendPacket(EPacketType.TEAM_TURN, teamTurn);
+        
+        m_player.networkUser.SendPacket(EPacketType.MOVEMENTS, move);
 
         // SEND TO SPECS THE CORRECT MOVE
     }

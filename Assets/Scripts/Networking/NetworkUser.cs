@@ -14,12 +14,10 @@ public abstract class NetworkUser : MonoBehaviour
 
     public string pseudo;
 
-    protected NetworkStream m_stream = null;
-    public NetworkStream Stream { get { return m_stream; } }
-
     public UnityEvent<Message> OnChatSentEvent = new UnityEvent<Message>();
     public UnityEvent OnDisconnection = new UnityEvent();
 
+    public Player player;
 
     #endregion
 
@@ -28,10 +26,7 @@ public abstract class NetworkUser : MonoBehaviour
     public void SendNetMessage(string message) => SendPacket(EPacketType.UNITY_MESSAGE, message);
     public virtual void SendChatMessage(Message message) => SendPacket(EPacketType.CHAT_MESSAGE, message);
 
-    public virtual void SendPacket(EPacketType type, object toSend)
-    {
-       m_stream?.Write(Packet.SerializePacket(type, toSend));
-    }
+    public abstract void SendPacket(EPacketType type, object toSend);
 
     protected abstract void ExecuteMovement(Packet toExecute);
     protected virtual void ExecuteValidity(Packet toExecute) {}
@@ -68,7 +63,7 @@ public abstract class NetworkUser : MonoBehaviour
                 ExecuteChatMessage(toInterpret);
                 break;
 
-            case EPacketType.TEAM:
+            case EPacketType.TEAM_SWITCH:
                 ExecuteTeam(toInterpret);
                 break;
 
@@ -82,25 +77,8 @@ public abstract class NetworkUser : MonoBehaviour
         }
     }
 
-
-
-    public abstract void ListenPackets();
-
-    protected virtual void ListenPacketCatch(IOException ioe)
-    {
-        Debug.LogError("Exception catch during packets listening " + ioe);
-    }
-
-    protected virtual void ListenPacketCatch(Exception e)
-    {
-        Debug.LogError("Exception catch during packets listening " + e);
-    }
-
     public virtual void Disconnect()
     {
-        m_stream?.Close();
-        m_stream = null;
-
         OnDisconnection?.Invoke();
     }
 

@@ -10,13 +10,14 @@ using UnityEngine.Events;
 
 public class Host : NetworkUser
 {
-
     #region Variables
 
     TcpListener server = null;
     TcpClient connectedClient = null;
 
-    protected List<NetworkStream> m_spectatorsStream = new List<NetworkStream>();
+    Dictionary<NetworkStream, ChessGameMgr.EChessTeam> clientsDatas = new Dictionary<NetworkStream, ChessGameMgr.EChessTeam>();
+
+    protected List<NetworkStream> m_clientStreams = new List<NetworkStream>();
 
     #endregion
 
@@ -35,14 +36,13 @@ public class Host : NetworkUser
     public override void SendChatMessage(Message message)
     {
         SendPacket(EPacketType.CHAT_MESSAGE, message);
-        SendSpectatorsPacket(EPacketType.CHAT_MESSAGE, message);
     }
 
-    public void SendSpectatorsPacket(EPacketType type, object toSend)
+    public override void SendPacket(EPacketType type, object toSend)
     {
-        foreach (NetworkStream stream in m_spectatorsStream)
+        foreach(NetworkStream stream in m_clientStreams)
         {
-            stream.Write(Packet.SerializePacket(type, toSend));
+            stream?.Write(Packet.SerializePacket(type, toSend));
         }
     }
 
@@ -53,7 +53,8 @@ public class Host : NetworkUser
         {
             connectedClient = await server.AcceptTcpClientAsync();
 
-            m_stream = connectedClient.GetStream();
+            NetworkStream newStream = connectedClient.GetStream();
+            m_clientStreams.Add(newStream);
 
         }
         catch (Exception e)
@@ -62,11 +63,15 @@ public class Host : NetworkUser
         }
         finally
         {
-            if (m_stream != null) ChessGameMgr.Instance.EnableAI(false);
+            if (!HasPlayer()) ChessGameMgr.Instance.EnableAI(false);
 
-            ListenPackets();
+            foreach(NetworkStream stream in m_clientStreams)
+            {
+                ListeClientPackets(stream);
+            }
         }
     }
+
 
     public void OpenServer(int port)
     {
@@ -88,16 +93,9 @@ public class Host : NetworkUser
         WaitPlayer();
     }
 
-    public override void ListenPackets()
+    public async void ListeClientPackets(NetworkStream stream)
     {
-        // Create 2 different threads to avoid getting stuck on client read
-        ListeClientPackets();
-        ListeSpectatorPackets();
-    }
-
-    public async void ListeClientPackets()
-    {
-        while (m_stream != null)
+        while (stream != null)
         {
             int headerSize = Packet.PacketSize();
 
@@ -105,33 +103,24 @@ public class Host : NetworkUser
 
             try
             {
-                await m_stream.ReadAsync(headerBytes);
+                await stream.ReadAsync(headerBytes);
 
                 Packet packet = Packet.DeserializeHeader(headerBytes);
 
                 packet.datas = new byte[packet.header.size];
-                await m_stream.ReadAsync(packet.datas);
+                await stream.ReadAsync(packet.datas);
 
                 InterpretPacket(packet);
             }
             catch (IOException ioe)
             {
-                ListenPacketCatch(ioe);
+                ListenPacketCatch(ioe, stream);
+                return;
             }
             catch (Exception e)
             {
-                ListenPacketCatch(e);
-            }
-        }
-    }
-
-    public async void ListeSpectatorPackets()
-    {
-        while (m_spectatorsStream.Count > 0)
-        {
-            foreach(NetworkStream stream in m_spectatorsStream)
-            {
-
+                ListenPacketCatch(e, stream);
+                return;
             }
         }
     }
@@ -143,7 +132,12 @@ public class Host : NetworkUser
         ChessGameMgr.Instance.CheckMove(move);
     }
 
-    protected override void InterpretPacket(Packet toInterpret)
+    protected void ExecuteTeamInfo(Packet toExecute, NetworkStream stream)
+    {
+        clientsDatas.Add(stream, toExecute.FillObject<ChessGameMgr.EChessTeam>());
+    }
+
+    protected void InterpretPacket(Packet toInterpret, NetworkStream stream)
     {
         switch (toInterpret.header.type)
         {
@@ -153,27 +147,39 @@ public class Host : NetworkUser
             case EPacketType.MOVE_VALIDITY:
                 break;
 
+            case EPacketType.TEAM_INFO:
+                ExecuteTeamInfo(toInterpret, stream);
+                break;
             default:
                 base.InterpretPacket(toInterpret);
                 break;
         }
     }
 
-    protected override void ListenPacketCatch(IOException ioe)
+
+    protected void ListenPacketCatch(IOException ioe, NetworkStream stream)
     {
-        OnClientDisconnection();
+        OnClientDisconnection(stream);
     }
 
-    protected override void ListenPacketCatch(Exception e)
+    protected void ListenPacketCatch(Exception e, NetworkStream stream)
     {
-        OnClientDisconnection();
+        OnClientDisconnection(stream);
     }
 
 
-    private void OnClientDisconnection()
+    private void OnClientDisconnection(NetworkStream stream)
     {
-        m_stream.Close();
-        m_stream = null;
+        if(clientsDatas[stream] != ChessGameMgr.EChessTeam.None)
+        {
+            ChessGameMgr.Instance.EnableAI(true);
+        }
+
+        clientsDatas.Remove(stream);
+
+        stream?.Close();
+
+        m_clientStreams.Remove(stream);
 
         ChessGameMgr.Instance.EnableAI(true);
     }
@@ -182,6 +188,10 @@ public class Host : NetworkUser
     {
         try
         {
+            foreach (NetworkStream stream in m_clientStreams) stream?.Close();
+
+            m_clientStreams.Clear();
+
             connectedClient?.Close();
 
             base.Disconnect();
@@ -195,5 +205,20 @@ public class Host : NetworkUser
             server.Stop();
         }
     }
+
+    public bool HasPlayer()
+    {
+        foreach(var element in clientsDatas)
+        {
+            if(element.Value == ChessGameMgr.EChessTeam.White ||
+               element.Value == ChessGameMgr.EChessTeam.Black)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     #endregion
 }

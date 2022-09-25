@@ -22,29 +22,25 @@ public class Player : MonoBehaviour
         {
             Host host = networkUser as Host;
 
-            if (host.Stream == null)
-            {
-                ChessGameMgr.Instance.EnableAI(true);
-            }
-
             ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.White;
 
-            host.SendPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.Black);
-            host.SendSpectatorsPacket(EPacketType.TEAM, ChessGameMgr.EChessTeam.None);
+            host.SendPacket(EPacketType.TEAM_SWITCH, ChessGameMgr.EChessTeam.Black);
 
             host.SendNetMessage("StartGame");
         }
+
+        networkUser.SendPacket(EPacketType.TEAM_INFO, ChessGameMgr.Instance.team);
 
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);
 
         OnGameStartEvent.Invoke();
     }
 
-
     public T SetNetworkState<T>() where T : NetworkUser
     {
         isHost = typeof(T) == typeof(Host);
         networkUser = gameObject.AddComponent<T>();
+        networkUser.player = this;
 
         networkUser.OnDisconnection.AddListener(OnDisconnected);
 

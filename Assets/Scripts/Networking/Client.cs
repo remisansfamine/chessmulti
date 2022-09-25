@@ -13,6 +13,8 @@ public class Client : NetworkUser
 
     private TcpClient m_currClient = null;
 
+    protected NetworkStream m_stream = null;
+
     #endregion
 
     #region MonoBehaviour
@@ -26,7 +28,10 @@ public class Client : NetworkUser
 
     #region Functions
 
-    public override void ListenPackets() => ListenServer();
+    public override void SendPacket(EPacketType type, object toSend)
+    {
+        m_stream?.Write(Packet.SerializePacket(type, toSend));
+    }
 
     public async void ListenServer()
     {
@@ -65,7 +70,7 @@ public class Client : NetworkUser
             m_currClient = new TcpClient(ip, port);
             m_stream = m_currClient.GetStream();
 
-            ListenPackets();
+            ListenServer();
         }
         catch (Exception e)
         {
@@ -104,15 +109,13 @@ public class Client : NetworkUser
         }
     }
 
-    protected new void ListenPacketCatch(IOException ioe)
+    protected void ListenPacketCatch(IOException ioe)
     {
         Disconnect();
     }
 
-    protected new void ListenPacketCatch(Exception e)
+    protected void ListenPacketCatch(Exception e)
     {
-        base.ListenPacketCatch(e);
-
         Disconnect();
     }
 
@@ -120,6 +123,9 @@ public class Client : NetworkUser
     {
         try
         {
+            m_stream?.Close();
+            m_stream = null;
+
             m_currClient.Close();
             base.Disconnect();
         }

@@ -16,6 +16,10 @@ public class Spectator : Client
             case EPacketType.MOVE_VALIDITY:
                 break;
 
+            case EPacketType.TEAM_SWITCH:
+                ChessGameMgr.Instance.team = ChessGameMgr.EChessTeam.None;
+                break;
+
             default:
                 base.InterpretPacket(toInterpret);
                 break;

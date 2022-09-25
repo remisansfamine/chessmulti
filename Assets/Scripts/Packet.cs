@@ -14,7 +14,8 @@ public enum EPacketType
     MOVE_VALIDITY,
     UNITY_MESSAGE,
     CHAT_MESSAGE,
-    TEAM,
+    TEAM_SWITCH,
+    TEAM_INFO,
     TEAM_TURN
 }
 

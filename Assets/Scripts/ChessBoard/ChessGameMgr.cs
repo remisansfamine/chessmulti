@@ -267,11 +267,34 @@ public partial class ChessGameMgr : MonoBehaviour
         UpdatePieces();
     }
 
+    public void SendHostResetGame()
+    {
+        if (m_player.isHost)
+        {
+            m_player.networkUser.SendNetMessage("ResetGame");
+        }
+    }
+
+    public void SendResetGame()
+    {
+        if (m_player.isHost)
+        {
+            m_player.networkUser.SendNetMessage("ResetGame");
+        }
+        else
+        {
+            m_player.networkUser.SendNetMessage("SendHostResetGame");
+        }
+    }
+
     public void ResetGame()
     {
-        teamTurn = EChessTeam.White;
+        if (m_player.isHost)
+        {
+            SendResetGame();
+        }
 
-        m_player.networkUser.SendNetMessage("ResetGame");
+        teamTurn = EChessTeam.White;
 
         isPlaying = true;
 

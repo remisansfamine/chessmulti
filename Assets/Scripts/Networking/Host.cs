@@ -85,11 +85,11 @@ public class Host : NetworkUser
             }
             catch (IOException e)
             {
-                Debug.LogError("Server seems stopped " + e);
+                return;
             }
             catch (Exception e)
             {
-                Debug.LogError("Server seems stopped " + e);
+                return;
             }
             finally
             {

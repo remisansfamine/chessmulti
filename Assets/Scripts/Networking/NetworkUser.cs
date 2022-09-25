@@ -80,6 +80,8 @@ public abstract class NetworkUser : MonoBehaviour
     public virtual void Disconnect()
     {
         OnDisconnection?.Invoke();
+
+        ChessGameMgr.Instance.ResetBoard();
     }
 
 

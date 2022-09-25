@@ -44,8 +44,6 @@ public class Lobby : MonoBehaviour
 
     public void OnMainMenu()
     {
-        ChessGameMgr.Instance.ResetBoard();
-
         if (m_player.isHost)
             OnHostStop();
         else

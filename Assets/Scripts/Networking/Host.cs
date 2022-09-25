@@ -308,6 +308,7 @@ public class Host : NetworkUser
                 SendPacketToOne(EPacketType.STATE_SWITCH, EUserState.PLAYER, m_clients[index].stream);
             }
         }
+
         currentOpponent = index;
     }
 

@@ -45,6 +45,8 @@ public class Lobby : MonoBehaviour
 
     public void OnMainMenu()
     {
+        ChessGameMgr.Instance.StopGame();
+
         if (m_player.isHost)
             OnHostStop();
         else
@@ -181,9 +183,12 @@ public class Lobby : MonoBehaviour
 
             if (!host) return;
 
+            List<string> options = host.GetClientPseudo();
+
+            if (m_opponentDropdown.options.Count == options.Count + 1) return;
+
             m_opponentDropdown.ClearOptions();
 
-            List<string> options = host.GetClientPseudo();
             options.Insert(0, "AI");
 
             m_opponentDropdown.AddOptions(options);

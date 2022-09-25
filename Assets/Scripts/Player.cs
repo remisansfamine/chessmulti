@@ -38,32 +38,12 @@ public class Player : MonoBehaviour
             }
         }
 
-        InitGame();
-    }
-
-    private void InitGame()
-    {
         m_playerCamera.SetCamera(ChessGameMgr.Instance.team);
 
         OnGameStartEvent.Invoke();
 
         ChessGameMgr.Instance.StartGame();
     }
-
-    /*async void VerifyPlayers(Host host)
-    {
-        await System.Threading.Tasks.Task.Delay(500);
-
-        while(!host.AreClientVerified());
-
-
-        if (!host.HasPlayer())
-        {
-            ChessGameMgr.Instance.EnableAI(true);
-        }
-        InitGame();
-    }*/
-
 
     public T SetNetworkState<T>() where T : NetworkUser
     {

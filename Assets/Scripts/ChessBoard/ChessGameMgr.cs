@@ -248,7 +248,7 @@ public partial class ChessGameMgr : MonoBehaviour
         if (OnScoreUpdated != null)
             OnScoreUpdated(scores[0], scores[1]);
 
-        isPlaying = false;
+        StopGame();
 
         if (endScreen)
         {
@@ -354,11 +354,17 @@ public partial class ChessGameMgr : MonoBehaviour
         return xPos + zPos * BOARD_SIZE;
     }
 
+    public void StopGame()
+    {
+        isPlaying = false;
+    }
+
     public void StartGame()
     {
         teamTurn = EChessTeam.White;
         isPlaying = true;
     }
+
     #endregion
 
     #region MonoBehaviour
